@@ -10,6 +10,9 @@ beforeAll(async () => {
   process.env.NODE_ENV = 'test';
   process.env.PORT = '0'; // Use random port for testing
   
+  // Set timeout for tests
+  jest.setTimeout(10000);
+  
   // Mock the server startup
   const feathers = require('@feathersjs/feathers');
   const express = require('@feathersjs/express');
@@ -107,7 +110,27 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (server && typeof server.close === 'function') {
-    server.close();
+    await new Promise((resolve) => {
+      server.close(() => {
+        // Close all connections
+        server.getConnections((err, count) => {
+          if (err) {
+            console.error('Error getting connections:', err);
+          }
+          resolve();
+        });
+      });
+    });
+  }
+  
+  // Close any remaining handles
+  if (app && app.io) {
+    app.io.close();
+  }
+  
+  // Force close any remaining handles
+  if (global.gc) {
+    global.gc();
   }
 });
 
