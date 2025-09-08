@@ -43,7 +43,7 @@ flake8==6.0.0
 mypy==1.5.1
 
 # Production
-gunicorn==21.2.0
+gunicorn==23.0.0
 redis==4.6.0
 celery==5.3.1
 
