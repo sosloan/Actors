@@ -6,8 +6,14 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Go 1.19+](https://img.shields.io/badge/go-1.19+-blue.svg)](https://golang.org/dl/)
 [![Rust 1.70+](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org/tools/install)
-[![Production Ready](https://img.shields.io/badge/Production-Ready-green.svg)](https://github.com/yourusername/ACTORS)
-[![Enterprise Grade](https://img.shields.io/badge/Enterprise-Grade-purple.svg)](https://github.com/yourusername/ACTORS)
+[![Node.js 16+](https://img.shields.io/badge/node.js-16+-green.svg)](https://nodejs.org/)
+[![Clojure 1.11+](https://img.shields.io/badge/clojure-1.11+-purple.svg)](https://clojure.org/)
+[![Production Ready](https://img.shields.io/badge/Production-Ready-green.svg)](https://github.com/sosloan/Actors)
+[![Enterprise Grade](https://img.shields.io/badge/Enterprise-Grade-purple.svg)](https://github.com/sosloan/Actors)
+[![Financial Trading](https://img.shields.io/badge/Financial-Trading-gold.svg)](https://github.com/sosloan/Actors)
+[![AI Agents](https://img.shields.io/badge/AI-Agents-cyan.svg)](https://github.com/sosloan/Actors)
+[![Real-time](https://img.shields.io/badge/Real--time-WebSocket-brightgreen.svg)](https://github.com/sosloan/Actors)
+[![DeFi](https://img.shields.io/badge/DeFi-Integration-orange.svg)](https://github.com/sosloan/Actors)
 
 **🚀 Next-Generation Financial Intelligence Platform**  
 *Empowering Financial Freedom Through AI-Driven Automation*
@@ -230,7 +236,7 @@ ACTORS/
 
 1. **📥 Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/ACTORS.git
+   git clone https://github.com/sosloan/Actors.git
    cd ACTORS
    ```
 
@@ -260,25 +266,48 @@ ACTORS/
    cd ../..
    ```
 
+6. **🧪 Run tests**
+   ```bash
+   npm test          # Node.js tests (from apis/server)
+   go test ./...     # Go tests (from GOS)
+   pytest            # Python tests
+   cargo test        # Rust tests (from RUSTS)
+   ```
+
+7. **🐳 Docker Support (Optional)**
+   ```bash
+   cd apis/server
+   docker build -t actors-metrics-server .
+   docker run -p 3030:3030 actors-metrics-server
+   ```
+
 ### **🚀 Quick Start**
 
-1. **🎯 Start the Unified API Gateway**
+1. **🌿 Start the Environmental Metrics Server**
+   ```bash
+   cd apis/server
+   npm start
+   # Server runs on http://localhost:3030
+   # Test with: npm run client
+   ```
+
+2. **🎯 Start the Unified API Gateway**
    ```bash
    cd apis
    python unified_api_gateway.py
    ```
 
-2. **⏰ Start the Enhanced Time Management API**
+3. **⏰ Start the Enhanced Time Management API**
    ```bash
    python enhanced_time_api.py
    ```
 
-3. **🏭 Start the Production Time Management API**
+4. **🏭 Start the Production Time Management API**
    ```bash
    python production_time_api.py
    ```
 
-4. **🔵 Run the Go Derivatives Gateway**
+5. **🔵 Run the Go Derivatives Gateway**
    ```bash
    cd GOS
    go run derivatives_gateway.go

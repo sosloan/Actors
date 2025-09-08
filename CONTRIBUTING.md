@@ -4,332 +4,261 @@ Thank you for your interest in contributing to ACTORS! This document provides gu
 
 ## 🎯 How to Contribute
 
-### **🎯 Ways to Contribute**
-- **🐛 Bug Reports**: Report bugs and issues
-- **💡 Feature Requests**: Suggest new features
-- **💻 Code Contributions**: Submit code improvements
-- **📚 Documentation**: Improve documentation
-- **🧪 Testing**: Add or improve tests
-- **💡 Examples**: Create example implementations
+### 🐛 Reporting Bugs
+- Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md)
+- Include detailed steps to reproduce the issue
+- Provide environment information and logs
+- Check existing issues before creating a new one
 
-### **🚀 Getting Started**
+### ✨ Suggesting Features
+- Use the [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.md)
+- Describe the problem and proposed solution
+- Include use cases and technical considerations
+- Consider the impact on existing components
 
-1. **🍴 Fork the Repository**
-   ```bash
-   git clone https://github.com/yourusername/ACTORS.git
-   cd ACTORS
-   ```
+### 🔧 Code Contributions
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** following our coding standards
+4. **Add tests** for new functionality
+5. **Update documentation** as needed
+6. **Commit your changes**: `git commit -m 'Add amazing feature'`
+7. **Push to your branch**: `git push origin feature/amazing-feature`
+8. **Open a Pull Request** using our [PR template](.github/PULL_REQUEST_TEMPLATE.md)
 
-2. **⚙️ Set Up Development Environment**
-   ```bash
-   # Install Python dependencies
-   pip install -r requirements.txt
-   
-   # Install Go dependencies
-   cd GOS && go mod tidy && cd ..
-   
-   # Install Rust dependencies
-   cd RUSTS && cargo build && cd ..
-   ```
+## 🏗️ Development Setup
 
-3. **🌿 Create a Feature Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+### Prerequisites
+- Python 3.8+
+- Go 1.19+
+- Node.js 16+
+- Rust 1.70+
+- Clojure 1.11+
+- Git
 
-## 📋 Development Guidelines
-
-### **Code Style**
-
-#### **Python**
-- Follow PEP 8 style guidelines
-- Use type hints where possible
-- Write docstrings for all functions and classes
-- Use meaningful variable and function names
-
-```python
-def calculate_portfolio_risk(portfolio: Dict[str, float], 
-                           market_data: pd.DataFrame) -> float:
-    """
-    Calculate portfolio risk using VaR methodology.
-    
-    Args:
-        portfolio: Dictionary of asset weights
-        market_data: Historical market data
-        
-    Returns:
-        Portfolio risk as a float
-    """
-    # Implementation here
-    pass
-```
-
-#### **Go**
-- Follow Go standard formatting (`gofmt`)
-- Use meaningful variable names
-- Write comprehensive comments
-- Follow Go naming conventions
-
-```go
-// CalculatePortfolioRisk computes the risk of a portfolio
-func CalculatePortfolioRisk(portfolio map[string]float64, 
-                          marketData []MarketData) float64 {
-    // Implementation here
-    return risk
-}
-```
-
-#### **Rust**
-- Follow Rust formatting (`rustfmt`)
-- Use meaningful variable names
-- Write comprehensive documentation
-- Follow Rust naming conventions
-
-```rust
-/// Calculate portfolio risk using VaR methodology
-pub fn calculate_portfolio_risk(
-    portfolio: &HashMap<String, f64>,
-    market_data: &[MarketData]
-) -> f64 {
-    // Implementation here
-    risk
-}
-```
-
-### **Testing**
-
-#### **Python Testing**
+### Local Development
 ```bash
-# Run all tests
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/Actors.git
+cd Actors
+
+# Add upstream remote
+git remote add upstream https://github.com/sosloan/Actors.git
+
+# Install dependencies
+pip install -r requirements.txt
+cd apis/server && npm install && cd ../..
+cd GOS && go mod download && cd ..
+cd RUSTS && cargo build && cd ..
+```
+
+### Running Tests
+```bash
+# Python tests
 pytest
 
-# Run specific test file
-pytest tests/test_portfolio.py
+# Go tests
+cd GOS && go test ./... && cd ..
 
-# Run with coverage
-pytest --cov=core --cov-report=html
+# Node.js tests
+cd apis/server && npm test && cd ../..
+
+# Rust tests
+cd RUSTS && cargo test && cd ..
+
+# Clojure tests
+cd CLOJURE && lein test && cd ..
 ```
 
-#### **Go Testing**
-```bash
-cd GOS
-go test ./...
-go test -v ./...
+## 📋 Coding Standards
+
+### 🐍 Python
+- Follow PEP 8 style guidelines
+- Use type hints where appropriate
+- Write docstrings for functions and classes
+- Use meaningful variable and function names
+- Maximum line length: 88 characters (Black formatter)
+
+### 🔵 Go
+- Follow standard Go formatting (`gofmt`)
+- Use meaningful variable and function names
+- Write comprehensive comments for exported functions
+- Follow Go naming conventions
+- Use `golangci-lint` for additional checks
+
+### 🟨 Node.js/JavaScript
+- Use ESLint configuration
+- Follow Airbnb JavaScript Style Guide
+- Use meaningful variable and function names
+- Write JSDoc comments for functions
+- Use async/await over callbacks
+
+### 🦀 Rust
+- Follow standard Rust formatting (`rustfmt`)
+- Use `clippy` for additional linting
+- Write comprehensive documentation comments
+- Follow Rust naming conventions
+- Use meaningful variable and function names
+
+### 🧠 Clojure
+- Follow Clojure style guidelines
+- Use meaningful function and variable names
+- Write docstrings for functions
+- Follow functional programming principles
+- Use consistent indentation (2 spaces)
+
+## 🧪 Testing Guidelines
+
+### Test Coverage
+- Aim for >80% test coverage
+- Write unit tests for new functions
+- Write integration tests for new features
+- Test edge cases and error conditions
+
+### Test Structure
+```python
+# Python example
+def test_function_name():
+    """Test description."""
+    # Arrange
+    input_data = "test"
+    
+    # Act
+    result = function_under_test(input_data)
+    
+    # Assert
+    assert result == expected_output
 ```
 
-#### **Rust Testing**
-```bash
-cd RUSTS
-cargo test
-cargo test --verbose
-```
-
-### **Documentation**
-
-- Update README.md for significant changes
-- Add docstrings to all new functions
-- Update API documentation
-- Include examples for new features
-
-## 🚀 Pull Request Process
-
-### **Before Submitting**
-
-1. **Run Tests**
-   ```bash
-   # Python
-   pytest
-   
-   # Go
-   cd GOS && go test ./...
-   
-   # Rust
-   cd RUSTS && cargo test
-   ```
-
-2. **Check Code Style**
-   ```bash
-   # Python
-   black .
-   flake8 .
-   mypy .
-   
-   # Go
-   cd GOS && gofmt -w .
-   
-   # Rust
-   cd RUSTS && cargo fmt
-   ```
-
-3. **Update Documentation**
-   - Update README.md if needed
-   - Add docstrings to new functions
-   - Update API documentation
-
-### **Pull Request Template**
-
-```markdown
-## Description
-Brief description of changes
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Testing
-- [ ] Tests pass locally
-- [ ] New tests added for new functionality
-- [ ] Manual testing completed
-
-## Checklist
-- [ ] Code follows style guidelines
-- [ ] Self-review completed
-- [ ] Documentation updated
-- [ ] No breaking changes (or documented)
-```
-
-## 🏗️ Project Structure
-
-### **Directory Organization**
-```
-ACTORS/
-├── docs/           # Documentation
-├── apis/           # API implementations
-├── core/           # Core system components
-├── GOS/            # Go implementations
-├── RUSTS/          # Rust implementations
-├── scripts/        # Utility scripts
-├── examples/       # Example implementations
-├── data/           # Data files
-├── tests/          # Test files
-└── open-batch-transcription/  # Speech processing
-```
-
-### **File Naming Conventions**
-- **Python**: `snake_case.py`
-- **Go**: `snake_case.go`
-- **Rust**: `snake_case.rs`
-- **Documentation**: `UPPER_CASE.md`
-
-## 🐛 Bug Reports
-
-### **Bug Report Template**
-```markdown
-## Bug Description
-Clear description of the bug
-
-## Steps to Reproduce
-1. Step one
-2. Step two
-3. Step three
-
-## Expected Behavior
-What should happen
-
-## Actual Behavior
-What actually happens
-
-## Environment
-- OS: [e.g., macOS, Linux, Windows]
-- Python version: [e.g., 3.8.10]
-- Go version: [e.g., 1.19.5]
-- Rust version: [e.g., 1.70.0]
-
-## Additional Context
-Any other relevant information
-```
-
-## 💡 Feature Requests
-
-### **Feature Request Template**
-```markdown
-## Feature Description
-Clear description of the feature
-
-## Use Case
-Why is this feature needed?
-
-## Proposed Solution
-How should this feature work?
-
-## Alternatives Considered
-Other solutions you've considered
-
-## Additional Context
-Any other relevant information
-```
-
-## 🔧 Development Setup
-
-### **IDE Configuration**
-
-#### **VS Code**
-```json
-{
-    "python.defaultInterpreterPath": "./venv/bin/python",
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.formatting.provider": "black",
-    "go.formatTool": "goimports",
-    "rust-analyzer.checkOnSave.command": "clippy"
+```go
+// Go example
+func TestFunctionName(t *testing.T) {
+    // Arrange
+    input := "test"
+    expected := "expected"
+    
+    // Act
+    result := FunctionUnderTest(input)
+    
+    // Assert
+    if result != expected {
+        t.Errorf("Expected %s, got %s", expected, result)
+    }
 }
 ```
 
-#### **PyCharm**
-- Enable type checking
-- Configure Black formatter
-- Set up pytest integration
+## 📚 Documentation
 
-### **Pre-commit Hooks**
-```bash
-# Install pre-commit
-pip install pre-commit
+### Code Documentation
+- Write clear docstrings/comments
+- Explain complex algorithms
+- Document API endpoints
+- Include usage examples
 
-# Install hooks
-pre-commit install
-```
+### README Updates
+- Update relevant sections when adding features
+- Include installation instructions for new dependencies
+- Add examples for new functionality
+- Keep the quick start guide current
 
-## 📚 Resources
+### API Documentation
+- Document all public APIs
+- Include parameter descriptions
+- Provide example requests/responses
+- Document error conditions
 
-### **Documentation**
-- [Python Style Guide](https://pep8.org/)
-- [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
-- [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
+## 🔄 Pull Request Process
 
-### **Tools**
-- **Python**: Black, Flake8, MyPy, Pytest
-- **Go**: gofmt, goimports, golint
-- **Rust**: rustfmt, clippy, cargo
+### Before Submitting
+- [ ] Run all tests locally
+- [ ] Check code formatting
+- [ ] Update documentation
+- [ ] Add tests for new functionality
+- [ ] Ensure no breaking changes (or document them)
 
-## 🤝 Community Guidelines
+### PR Requirements
+- [ ] Clear description of changes
+- [ ] Link to related issues
+- [ ] Screenshots for UI changes
+- [ ] Updated documentation
+- [ ] Passing CI/CD pipeline
 
-### **Code of Conduct**
-- Be respectful and inclusive
-- Focus on constructive feedback
-- Help others learn and grow
-- Follow the golden rule
+### Review Process
+1. **Automated checks** must pass
+2. **Code review** by maintainers
+3. **Testing** in staging environment
+4. **Approval** from at least one maintainer
+5. **Merge** to main branch
 
-### **Communication**
-- Use clear, descriptive commit messages
-- Provide context in pull requests
-- Ask questions when unsure
-- Share knowledge and insights
+## 🏷️ Issue Labels
 
-## 📞 Getting Help
+### Bug Reports
+- `bug` - Something isn't working
+- `priority: critical` - Blocks core functionality
+- `priority: high` - Important issue
+- `priority: medium` - Moderate impact
+- `priority: low` - Minor issue
 
+### Feature Requests
+- `enhancement` - New feature or improvement
+- `component: [name]` - Specific component affected
+- `area: frontend` - Frontend changes
+- `area: backend` - Backend changes
+- `area: infrastructure` - Infrastructure changes
+
+### Pull Requests
+- `ready for review` - Ready for maintainer review
+- `needs testing` - Requires additional testing
+- `breaking change` - Contains breaking changes
+- `documentation` - Documentation updates
+
+## 🚀 Release Process
+
+### Versioning
+We follow [Semantic Versioning](https://semver.org/):
+- **MAJOR**: Breaking changes
+- **MINOR**: New features (backward compatible)
+- **PATCH**: Bug fixes (backward compatible)
+
+### Release Steps
+1. **Create release branch** from main
+2. **Update version numbers** in relevant files
+3. **Update CHANGELOG.md** with new features/fixes
+4. **Create pull request** for release
+5. **Merge to main** after approval
+6. **Create GitHub release** with tag
+7. **Deploy** to production
+
+## 🤔 Questions?
+
+- **GitHub Discussions**: For general questions and ideas
 - **GitHub Issues**: For bugs and feature requests
-- **GitHub Discussions**: For questions and general discussion
-- **Email**: dev@actors-finance.com
-- **Discord**: [Join our community](https://discord.gg/actors)
+- **Pull Requests**: For code contributions
+
+## 📜 Code of Conduct
+
+### Our Pledge
+We are committed to providing a welcoming and inclusive environment for all contributors.
+
+### Expected Behavior
+- Use welcoming and inclusive language
+- Be respectful of differing viewpoints
+- Accept constructive criticism gracefully
+- Focus on what's best for the community
+- Show empathy towards other community members
+
+### Unacceptable Behavior
+- Harassment, trolling, or inflammatory comments
+- Personal attacks or political discussions
+- Public or private harassment
+- Publishing private information without permission
+- Any conduct inappropriate in a professional setting
 
 ## 🎉 Recognition
 
 Contributors will be recognized in:
-- CONTRIBUTORS.md file
-- Release notes
-- Project documentation
-- Community highlights
+- **README.md** contributors section
+- **Release notes** for significant contributions
+- **GitHub contributors** page
 
-Thank you for contributing to ACTORS! Together, we're building the future of financial automation. 🦞🚀
+Thank you for contributing to ACTORS! 🚀

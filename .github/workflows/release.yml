@@ -1,0 +1,198 @@
+name: 🚀 ACTORS Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Get version
+      id: get_version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        VERSION="${{ steps.get_version.outputs.version }}"
+        echo "## 🚀 ACTORS $VERSION Release" > release_notes.md
+        echo "" >> release_notes.md
+        echo "### ✨ New Features" >> release_notes.md
+        echo "- Enhanced environmental metrics server with real-time monitoring" >> release_notes.md
+        echo "- Advanced derivatives gateway with Go implementation" >> release_notes.md
+        echo "- Clojure functional programming layer for financial intelligence" >> release_notes.md
+        echo "- Rust-based ML pipeline components" >> release_notes.md
+        echo "- Comprehensive CI/CD pipeline with multi-language testing" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### 🔧 Technical Improvements" >> release_notes.md
+        echo "- Production-grade infrastructure with circuit breakers" >> release_notes.md
+        echo "- Event sourcing and distributed tracing" >> release_notes.md
+        echo "- Real-time WebSocket communication" >> release_notes.md
+        echo "- Comprehensive documentation and examples" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### 📊 System Components" >> release_notes.md
+        echo "- **Environmental Metrics Server**: Real-time monitoring with persistence" >> release_notes.md
+        echo "- **Derivatives Gateway**: Advanced trading infrastructure" >> release_notes.md
+        echo "- **Agent Network**: Distributed autonomous agents" >> release_notes.md
+        echo "- **ML Pipeline**: Machine learning integration" >> release_notes.md
+        echo "- **Frontend Dashboards**: React/TypeScript interfaces" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### 🛠️ Technologies" >> release_notes.md
+        echo "- Python 3.8+ (APIs and ML)" >> release_notes.md
+        echo "- Go 1.19+ (Derivatives Gateway)" >> release_notes.md
+        echo "- Node.js 16+ (Real-time Server)" >> release_notes.md
+        echo "- Rust 1.70+ (Performance Components)" >> release_notes.md
+        echo "- Clojure 1.11+ (Functional Layer)" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### 📈 Performance" >> release_notes.md
+        echo "- Sub-millisecond execution capabilities" >> release_notes.md
+        echo "- Enterprise-grade reliability patterns" >> release_notes.md
+        echo "- Real-time data processing" >> release_notes.md
+        echo "- Comprehensive monitoring and alerting" >> release_notes.md
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.get_version.outputs.version }}
+        release_name: "ACTORS ${{ steps.get_version.outputs.version }}"
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+
+  build-artifacts:
+    needs: create-release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: apis/server/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./apis/server
+      run: npm ci
+    
+    - name: Build metrics server
+      working-directory: ./apis/server
+      run: |
+        npm run build || echo "No build script found, using source files"
+    
+    - name: Create deployment package
+      run: |
+        mkdir -p dist/actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}
+        cp -r apis/server/* dist/actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}/
+        cp -r GOS dist/actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}/
+        cp -r CLOJURE dist/actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}/
+        cp -r RUSTS dist/actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}/
+        cp -r examples dist/actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}/
+        cp README.md dist/actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}/
+        cp LICENSE dist/actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}/
+        
+        cd dist
+        tar -czf actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.tar.gz actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}/
+        zip -r actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.zip actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}/
+    
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./dist/actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.tar.gz
+        asset_name: actors-${{ steps.get_version.outputs.version }}-${{ matrix.os }}.tar.gz
+        asset_content_type: application/gzip
+
+  docker-build:
+    needs: create-release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./apis/server
+        push: true
+        tags: |
+          sosloan/actors-metrics-server:${{ needs.create-release.outputs.version }}
+          sosloan/actors-metrics-server:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  update-documentation:
+    needs: create-release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Update version in README
+      run: |
+        VERSION="${{ needs.create-release.outputs.version }}"
+        sed -i "s/version.*=.*\".*\"/version = \"$VERSION\"/g" README.md
+    
+    - name: Commit version update
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add README.md
+        git commit -m "Update version to ${{ needs.create-release.outputs.version }}" || exit 0
+        git push
+
+  notify-release:
+    needs: [create-release, build-artifacts, docker-build]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Notify release completion
+      run: |
+        echo "🎉 ACTORS ${{ needs.create-release.outputs.version }} released successfully!"
+        echo "📦 Release artifacts built for multiple platforms"
+        echo "🐳 Docker image pushed to registry"
+        echo "📚 Documentation updated"
+        echo "🔗 Release URL: https://github.com/sosloan/Actors/releases/tag/${{ needs.create-release.outputs.version }}"

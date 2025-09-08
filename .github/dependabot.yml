@@ -1,0 +1,81 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "sosloan"
+    assignees:
+      - "sosloan"
+    commit-message:
+      prefix: "🐍"
+      include: "scope"
+
+  # Go dependencies
+  - package-ecosystem: "gomod"
+    directory: "/GOS"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "sosloan"
+    assignees:
+      - "sosloan"
+    commit-message:
+      prefix: "🔧"
+      include: "scope"
+
+  # Node.js dependencies
+  - package-ecosystem: "npm"
+    directory: "/apis/server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "sosloan"
+    assignees:
+      - "sosloan"
+    commit-message:
+      prefix: "📦"
+      include: "scope"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "sosloan"
+    assignees:
+      - "sosloan"
+    commit-message:
+      prefix: "⚙️"
+      include: "scope"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/apis/server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "sosloan"
+    assignees:
+      - "sosloan"
+    commit-message:
+      prefix: "🐳"
+      include: "scope"
