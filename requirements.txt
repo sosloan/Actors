@@ -44,7 +44,7 @@ mypy==1.5.1
 
 # Production
 gunicorn==21.2.0
-redis==4.6.0
+redis==6.4.0
 celery==5.3.1
 
 # Optional: Advanced features
