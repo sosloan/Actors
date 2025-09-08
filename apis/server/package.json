@@ -29,7 +29,7 @@
     "@feathersjs/express": "^5.0.0",
     "@feathersjs/socketio": "^5.0.0",
     "cors": "^2.8.5",
-    "express": "^4.18.2"
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1",
