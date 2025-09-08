@@ -10,7 +10,7 @@
     (is (= 4 (+ 2 2)))
     (is (= 6 (* 2 3)))
     (is (= 2 (/ 6 3)))
-    (is (= 8 (expt 2 3)))))
+    (is (= 8 (Math/pow 2 3)))))
 
 (deftest test-financial-calculations
   (testing "Portfolio value calculation"

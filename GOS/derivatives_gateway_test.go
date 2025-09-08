@@ -65,16 +65,41 @@ func TestPositionCalculation(t *testing.T) {
 
 func TestOptionContract(t *testing.T) {
 	option := OptionContract{
-		ID:                "test-option-1",
-		Symbol:            "AAPL",
-		StrikePrice:       150.0,
-		ExpirationDate:    time.Now().Add(30 * 24 * time.Hour),
-		OptionType:        "call",
-		UnderlyingPrice:   155.0,
-		BidPrice:          5.0,
-		AskPrice:          5.5,
+		ID:               "test-option-1",
+		UnderlyingSymbol: "AAPL",
+		Strike:           150.0,
+		ExpirationDate:   time.Now().Add(30 * 24 * time.Hour),
+		OptionType:       "call",
+		Multiplier:       100,
+		CreatedAt:        time.Now(),
+	}
+
+	if option.UnderlyingSymbol != "AAPL" {
+		t.Errorf("Expected underlying symbol 'AAPL', got '%s'", option.UnderlyingSymbol)
+	}
+
+	if option.Strike != 150.0 {
+		t.Errorf("Expected strike price 150.0, got %f", option.Strike)
+	}
+
+	if option.OptionType != "call" {
+		t.Errorf("Expected option type 'call', got '%s'", option.OptionType)
+	}
+
+	if option.Multiplier != 100 {
+		t.Errorf("Expected multiplier 100, got %d", option.Multiplier)
+	}
+}
+
+func TestOptionMarketData(t *testing.T) {
+	marketData := OptionMarketData{
+		OptionID:          "test-option-1",
+		Bid:               5.0,
+		Ask:               5.5,
+		BidSize:           100,
+		AskSize:           100,
+		LastPrice:         5.25,
 		Volume:            1000,
-		OpenInterest:      5000,
 		ImpliedVolatility: 0.25,
 		Delta:             0.6,
 		Gamma:             0.02,
@@ -83,28 +108,23 @@ func TestOptionContract(t *testing.T) {
 		LastUpdated:       time.Now(),
 	}
 
-	if option.Symbol != "AAPL" {
-		t.Errorf("Expected symbol 'AAPL', got '%s'", option.Symbol)
+	if marketData.Bid != 5.0 {
+		t.Errorf("Expected bid 5.0, got %f", marketData.Bid)
 	}
 
-	if option.StrikePrice != 150.0 {
-		t.Errorf("Expected strike price 150.0, got %f", option.StrikePrice)
+	if marketData.Ask != 5.5 {
+		t.Errorf("Expected ask 5.5, got %f", marketData.Ask)
 	}
 
-	if option.OptionType != "call" {
-		t.Errorf("Expected option type 'call', got '%s'", option.OptionType)
+	if marketData.Volume != 1000 {
+		t.Errorf("Expected volume 1000, got %d", marketData.Volume)
 	}
 
-	// Test intrinsic value calculation
-	expectedIntrinsicValue := 0.0
-	if option.UnderlyingPrice <= option.StrikePrice {
-		expectedIntrinsicValue = 0.0
-	} else {
-		expectedIntrinsicValue = option.UnderlyingPrice - option.StrikePrice
-	}
-
-	if expectedIntrinsicValue != 5.0 {
-		t.Errorf("Expected intrinsic value 5.0, got %f", expectedIntrinsicValue)
+	// Test spread calculation
+	spread := marketData.Ask - marketData.Bid
+	expectedSpread := 0.5
+	if spread != expectedSpread {
+		t.Errorf("Expected spread %f, got %f", expectedSpread, spread)
 	}
 }
 
@@ -164,9 +184,16 @@ func TestRiskCalculation(t *testing.T) {
 	riskContribution := weight * volatility
 	expectedRiskContribution := 0.02
 
-	if riskContribution != expectedRiskContribution {
+	if abs(riskContribution-expectedRiskContribution) > 0.0001 {
 		t.Errorf("Expected risk contribution %f, got %f", expectedRiskContribution, riskContribution)
 	}
+}
+
+func abs(x float64) float64 {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
 
 // Benchmark tests

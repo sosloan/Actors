@@ -106,7 +106,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  if (server) {
+  if (server && typeof server.close === 'function') {
     server.close();
   }
 });
