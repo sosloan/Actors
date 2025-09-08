@@ -27,7 +27,7 @@ websockets==11.0.3
 
 # Database
 sqlalchemy==2.0.19
-alembic==1.11.1
+alembic==1.16.5
 
 # Utilities
 python-dotenv==1.0.0
