@@ -39,7 +39,7 @@ rich==13.4.2
 pytest==7.4.0
 pytest-asyncio==0.21.1
 black==23.7.0
-flake8==6.0.0
+flake8==7.3.0
 mypy==1.5.1
 
 # Production
