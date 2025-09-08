@@ -1,0 +1,84 @@
+{:server {:port 8080
+          :host "localhost"
+          :cors {:allowed-origins ["*"]
+                 :allowed-methods [:get :post :put :delete :options]
+                 :allowed-headers ["Content-Type" "Authorization"]}}
+
+ :python-api {:base-url "http://localhost:8000"
+              :timeout 5000
+              :retry-attempts 3
+              :endpoints {:time-management "/api/time-management"
+                          :portfolio-optimization "/api/portfolio-optimization"
+                          :ml-pipeline "/api/ml-pipeline"}}
+
+ :go-api {:base-url "http://localhost:8080"
+          :timeout 5000
+          :retry-attempts 3
+          :endpoints {:derivatives "/api/derivatives"
+                      :circuit-breaker "/api/circuit-breaker"
+                      :validation "/api/validation"}}
+
+ :convex-db {:base-url "https://your-convex-deployment.convex.cloud"
+             :timeout 5000
+             :retry-attempts 3
+             :auth-token "your-convex-token"
+             :endpoints {:market-data "/api/market-data"
+                         :signals "/api/signals"
+                         :risk-metrics "/api/risk-metrics"}}
+
+ :trading {:strategies {:ma {:short-period 10
+                             :long-period 20
+                             :min-confidence 0.7}
+                        :bollinger {:period 20
+                                    :std-dev 2
+                                    :min-confidence 0.7}
+                        :rsi {:period 14
+                              :overbought 70
+                              :oversold 30
+                              :min-confidence 0.7}}
+           :backtesting {:initial-capital 100000
+                         :transaction-cost 10
+                         :max-positions 10}}
+
+ :risk {:limits {:var-95 0.05
+                 :var-99 0.10
+                 :max-drawdown 0.20
+                 :max-position-size 0.10
+                 :max-portfolio-risk 0.15}
+        :monitoring {:update-interval 1000
+                     :alert-threshold 0.8}
+        :stress-testing {:scenarios ["2008-crisis" "dot-com-bubble" "covid-19"]
+                         :simulations 10000}}
+
+ :integration {:sync-intervals {:market-data 1000
+                                :signals 500
+                                :risk-metrics 2000}
+               :event-bus {:buffer-size 1000
+                           :timeout 5000}
+               :health-check {:interval 30000
+                              :timeout 5000}}
+
+ :logging {:level :info
+           :appenders [{:type :console
+                        :pattern "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"}
+                       {:type :file
+                        :file "logs/actors-clojure.log"
+                        :pattern "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"}]}
+
+ :performance {:gc-optimization true
+               :memory-monitoring true
+               :profiling {:enabled false
+                           :sample-rate 0.01}}}
+
+ :development {:hot-reload true
+               :debug-mode true
+               :mock-integrations true
+               :demo-data true}
+
+ :production {:hot-reload false
+              :debug-mode false
+              :mock-integrations false
+              :demo-data false
+              :security {:rate-limiting true
+                         :authentication true
+                         :ssl-enabled true}}}

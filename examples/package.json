@@ -1,0 +1,98 @@
+{
+  "name": "actors-frontend",
+  "version": "2.1.0",
+  "description": "ACTORS - Distributed Autonomous Agents for Financial Trading & Freedom - Enhanced Frontend",
+  "private": true,
+  "dependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "typescript": "^5.0.0",
+    "recharts": "^2.8.0",
+    "tailwindcss": "^3.3.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "@headlessui/react": "^1.7.0",
+    "@heroicons/react": "^2.0.0",
+    "framer-motion": "^10.16.0",
+    "react-router-dom": "^6.8.0",
+    "react-query": "^3.39.0",
+    "axios": "^1.6.0",
+    "date-fns": "^2.30.0",
+    "lodash": "^4.17.0",
+    "@types/lodash": "^4.14.0",
+    "react-hot-toast": "^2.4.0",
+    "react-intersection-observer": "^9.5.0",
+    "react-use": "^17.4.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.0",
+    "web-vitals": "^3.5.0",
+    "eslint": "^8.0.0",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.0.0",
+    "prettier-plugin-tailwindcss": "^0.5.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write src/**/*.{ts,tsx,css,md}",
+    "type-check": "tsc --noEmit",
+    "dev": "npm start",
+    "build:prod": "npm run type-check && npm run lint && npm run build"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ],
+    "rules": {
+      "no-unused-vars": "warn",
+      "no-console": "warn",
+      "prefer-const": "error",
+      "no-var": "error"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "keywords": [
+    "financial-trading",
+    "autonomous-agents",
+    "react",
+    "typescript",
+    "dashboard",
+    "fintech",
+    "defi",
+    "fire-planning",
+    "portfolio-management",
+    "real-time-data"
+  ],
+  "author": "ACTORS Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/ACTORS.git"
+  },
+  "homepage": "https://github.com/yourusername/ACTORS#readme"
+}

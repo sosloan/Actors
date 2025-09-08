@@ -1,0 +1,36 @@
+{
+  "name": "environmental-metrics-server",
+  "version": "2.0.0",
+  "description": "Real-time environmental metrics server with persistence and alerting",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "client": "node client-example.js",
+    "clean": "rm -rf node_modules package-lock.json && npm install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "environmental",
+    "metrics",
+    "real-time",
+    "websocket",
+    "feathers",
+    "sustainability"
+  ],
+  "author": "ACTORS Team",
+  "license": "MIT",
+  "dependencies": {
+    "@feathersjs/feathers": "^5.0.0",
+    "@feathersjs/express": "^5.0.0",
+    "@feathersjs/socketio": "^5.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
