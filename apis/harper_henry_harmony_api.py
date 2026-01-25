@@ -374,4 +374,10 @@ if __name__ == '__main__':
     
     # Only enable debug mode in development environment
     debug_mode = os.getenv('FLASK_ENV') == 'development'
-    app.run(host='0.0.0.0', port=5002, debug=debug_mode)
+    
+    # Use localhost for local development, configure host via environment for production
+    # SECURITY NOTE: In production, use a proper WSGI server (gunicorn, uwsgi) with 
+    # authentication/authorization instead of the Flask development server
+    host = os.getenv('FLASK_HOST', '127.0.0.1')
+    
+    app.run(host=host, port=5002, debug=debug_mode)

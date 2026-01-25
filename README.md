@@ -336,6 +336,20 @@ ACTORS/
    # Runs comprehensive test suite for time management components
    ```
 
+8. **🎭 Start the Harper Henry Harmony API**
+   ```bash
+   cd apis
+   python harper_henry_harmony_api.py
+   # Server runs on http://localhost:5002
+   # Test with: curl http://localhost:5002/healthz
+   ```
+
+9. **🧪 Test the Harper Henry Harmony System**
+   ```bash
+   python tests/test_harper_henry_harmony.py
+   # Runs comprehensive integration tests
+   ```
+
 ### **🎯 Entry Points**
 1. **💼 Basic Portfolio Management**: Start with simple portfolio tracking and optimization
 2. **🎯 FIRE Planning**: Set financial independence goals and track progress

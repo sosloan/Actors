@@ -275,17 +275,26 @@ const HarperHenryHarmonyDashboard: React.FC = () => {
     traditionalCraftsCount: 3
   });
 
+  // Configuration constants for real-time updates
+  const UPDATE_INTERVAL_MS = 5000; // 5 seconds
+  const SCORE_VARIANCE = 0.05; // Max variance for cultural impact
+  const VELOCITY_VARIANCE = 0.05; // Max variance for economic velocity
+  const SUSTAINABILITY_VARIANCE = 0.03; // Max variance for sustainability
+  const HARMONY_VARIANCE = 0.02; // Max variance for harmony score
+  const MIN_SCORE = 0.5; // Minimum score value
+  const MAX_SCORE = 1.0; // Maximum score value
+
   // Simulate real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
       setSystemMetrics(prev => ({
         ...prev,
-        culturalImpactScore: Math.max(0.5, Math.min(1.0, prev.culturalImpactScore + (Math.random() - 0.5) * 0.05)),
-        economicVelocity: Math.max(0.5, Math.min(1.0, prev.economicVelocity + (Math.random() - 0.5) * 0.05)),
-        sustainabilityScore: Math.max(0.5, Math.min(1.0, prev.sustainabilityScore + (Math.random() - 0.5) * 0.03)),
-        harmonyScore: Math.max(0.5, Math.min(1.0, prev.harmonyScore + (Math.random() - 0.5) * 0.02))
+        culturalImpactScore: Math.max(MIN_SCORE, Math.min(MAX_SCORE, prev.culturalImpactScore + (Math.random() - 0.5) * SCORE_VARIANCE)),
+        economicVelocity: Math.max(MIN_SCORE, Math.min(MAX_SCORE, prev.economicVelocity + (Math.random() - 0.5) * VELOCITY_VARIANCE)),
+        sustainabilityScore: Math.max(MIN_SCORE, Math.min(MAX_SCORE, prev.sustainabilityScore + (Math.random() - 0.5) * SUSTAINABILITY_VARIANCE)),
+        harmonyScore: Math.max(MIN_SCORE, Math.min(MAX_SCORE, prev.harmonyScore + (Math.random() - 0.5) * HARMONY_VARIANCE))
       }));
-    }, 5000);
+    }, UPDATE_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, []);
