@@ -36,7 +36,7 @@ def test_harmony_config_defaults():
     assert config.min_harmony_score == 0.9
     assert config.festival_boost_factor == 0.2
     assert config.festival_cultural_multiplier == 1.25
-    assert config.enable_rich_metrics == True
+    assert config.enable_rich_metrics
     assert config.export_format == "json"
 
 
@@ -57,11 +57,11 @@ def test_behavioral_guardrails_defaults():
     """Test HarperHenryBehavioralGuardrails default values"""
     guardrails = HarperHenryBehavioralGuardrails()
     
-    assert guardrails.enforce_cultural_weight == True
-    assert guardrails.enforce_harmony_minimums == True
-    assert guardrails.enforce_sustainability == True
-    assert guardrails.enforce_artistic_balance == True
-    assert guardrails.allow_festival_override == True
+    assert guardrails.enforce_cultural_weight
+    assert guardrails.enforce_harmony_minimums
+    assert guardrails.enforce_sustainability
+    assert guardrails.enforce_artistic_balance
+    assert guardrails.allow_festival_override
     assert guardrails.max_optimization_iterations == 100
 
 
@@ -73,7 +73,7 @@ def test_harper_henry_initialization():
     engine = HarperHenryHarmony(config=config, guardrails=guardrails)
     
     assert engine.config.min_cultural_weight == 0.65
-    assert engine.guardrails.enforce_cultural_weight == True
+    assert engine.guardrails.enforce_cultural_weight
     assert engine.optimization_history == []
 
 
@@ -84,7 +84,7 @@ def test_harper_henry_default_initialization():
     assert engine.config is not None
     assert engine.guardrails is not None
     assert engine.config.min_cultural_weight == 0.6
-    assert engine.guardrails.enforce_cultural_weight == True
+    assert engine.guardrails.enforce_cultural_weight
 
 
 @pytest.mark.asyncio
@@ -100,7 +100,7 @@ async def test_festival_detection_no_festival():
     
     festival_detected, festival_name = engine._detect_festival(portfolio_data)
     
-    assert festival_detected == False
+    assert not festival_detected
     assert festival_name is None
 
 
@@ -117,7 +117,7 @@ async def test_festival_detection_diwali():
     
     festival_detected, festival_name = engine._detect_festival(portfolio_data)
     
-    assert festival_detected == True
+    assert festival_detected
     assert festival_name == "Diwali"
 
 
@@ -134,7 +134,7 @@ async def test_festival_detection_chinese_new_year():
     
     festival_detected, festival_name = engine._detect_festival(portfolio_data)
     
-    assert festival_detected == True
+    assert festival_detected
     assert festival_name == "Chinese New Year"
 
 
