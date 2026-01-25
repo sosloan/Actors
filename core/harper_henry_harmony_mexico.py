@@ -228,8 +228,9 @@ class HarperHenryHarmonyMexico:
         self.sentiment_builders = {}
         self.optimization_history = []
         
-        # Exchange rate cache
-        self.current_exchange_rate = 17.5  # USD/MXN approximate
+        # Exchange rate cache - configurable for real-time updates
+        # In production, this should be fetched from a reliable FX API
+        self.current_exchange_rate = 17.5  # USD/MXN approximate (configurable)
         
     async def optimize_mexico_portfolio(
         self,
@@ -300,9 +301,9 @@ class HarperHenryHarmonyMexico:
         
         optimization_time = time.time() - start_time
         
-        # Create result
+        # Create result with readable ID format
         result = MexicoGuadalajaraResult(
-            id=f"mexico_gdl_{datetime.now().timestamp()}",
+            id=f"mexico_gdl_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             total_portfolio_value_mxn=portfolio_budget_usd * self.current_exchange_rate,
             total_portfolio_value_usd=portfolio_budget_usd,
             exchange_rate_mxn_usd=self.current_exchange_rate,
