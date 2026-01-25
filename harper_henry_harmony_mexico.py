@@ -1314,5 +1314,232 @@ async def run_mexico_edition_with_festival_tilt() -> None:
     print(f"   Sharpe: {result.portfolio_sharpe_approx:.3f}  Diversification: {result.diversification_score:.2f}\n")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# HYPER-HEURISTIC SMART CONTRACT — MULTI-PROTOCOL / MULTI-CHAIN INTEGRATION PLAN
+# ═══════════════════════════════════════════════════════════════════════════════
+# Structured platform integration for on-chain adaptability, gas efficiency,
+# and auditability. Phases 0–5 with dependencies and actionable steps.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class IntegrationPhase(Enum):
+    """Phases of the hyper-heuristic platform integration plan."""
+    PHASE_0_PRELIMINARY = "phase_0_preliminary"
+    PHASE_1_ABSTRACTION = "phase_1_cross_platform_abstraction"
+    PHASE_2_PROTOCOL = "phase_2_protocol_specific"
+    PHASE_3_DEPLOYMENT = "phase_3_deployment_testing"
+    PHASE_4_MONITORING = "phase_4_monitoring_management"
+    PHASE_5_IMPROVEMENT = "phase_5_continuous_improvement"
+
+
+class TargetPlatform(Enum):
+    """Target blockchains for deployment."""
+    ETHEREUM_L1 = "ethereum_l1"
+    POLYGON = "polygon"
+    BSC = "bsc"
+    AVALANCHE = "avalanche"
+
+
+class TargetProtocol(Enum):
+    """Target DeFi protocol categories."""
+    DEX_UNISWAP_SUSHISWAP = "dex_uniswap_sushiswap"
+    DEX_CURVE_BALANCER = "dex_curve_balancer"
+    LENDING_AAVE_COMPOUND = "lending_aave_compound"
+
+
+HYPER_HEURISTIC_PLATFORM_INTEGRATION_PLAN: Dict[str, Any] = {
+    "phase_0_preliminary": {
+        "name": "Preliminary Assessment",
+        "platform_mapping": [
+            "Identify target blockchains: Ethereum L1, Polygon, BSC, Avalanche, etc.",
+            "Identify target DeFi protocols per platform: Uniswap/Sushiswap, Aave/Compound, Curve, Balancer.",
+            "Document differences in EVM versions, gas model, and oracle access.",
+        ],
+        "heuristic_library_audit": [
+            "Review existing low-level heuristics for compatibility with each protocol.",
+            "Identify protocol-specific parameters (e.g., slippage, LTV, collateral types).",
+        ],
+        "state_feature_analysis": [
+            "Map required on-chain features per platform: gas price, pool reserves, oracle lag, token volatility, etc.",
+            "Determine availability and cost of fetching features on-chain or via trusted oracles.",
+        ],
+    },
+    "phase_1_abstraction": {
+        "name": "Cross-Platform Abstraction Layer",
+        "contract_wrapper": [
+            "Implement thin abstraction layer standardizing: feature extraction, oracle reading, heuristic dispatch, logging.",
+        ],
+        "state_normalization": [
+            "Standardize feature vectors across platforms: scale gas prices, normalize LTV ranges, bucket volatility.",
+            "Ensure high-level controller operates consistently across blockchains.",
+        ],
+        "decision_policy_serialization": [
+            "Compile RL policy into platform-agnostic decision tree or lookup table.",
+            "Enable deployment on EVM-compatible chains without modifying policy logic.",
+        ],
+    },
+    "phase_2_protocol": {
+        "name": "Protocol-Specific Integration",
+        "dex_integration": [
+            "Wrap swap functions with hyper-heuristic controller: Uniswap/Sushiswap (slippage, routing), Curve/Balancer (pool allocation).",
+            "Implement event logging for trade success/failure and gas consumption.",
+        ],
+        "lending_integration": [
+            "Wrap lending/borrowing with adaptive LTV and interest rate heuristics: Aave/Compound (collateral factor, liquidation thresholds).",
+            "Maintain protocol-specific safety margins to prevent liquidation cascades.",
+        ],
+        "oracle_layer": [
+            "Integrate Chainlink or custom on-chain feeds per platform; ensure fallback mechanisms for missing or delayed data.",
+        ],
+    },
+    "phase_3_deployment": {
+        "name": "Deployment & Testing",
+        "testnet_deployment": [
+            "Deploy on testnets: Ethereum→Goerli, Polygon→Mumbai, BSC→Testnet.",
+            "Validate: gas cost per heuristic selection, decision correctness, logging and audit trail.",
+        ],
+        "simulation": [
+            "Replay historical transactions per platform; verify tx success improvement, gas efficiency, stress-test under volatility.",
+        ],
+        "security_audit": [
+            "Formal verification for decision logic and low-level heuristics; penetration testing; fallback heuristics if RL policy fails.",
+        ],
+    },
+    "phase_4_monitoring": {
+        "name": "Cross-Platform Monitoring and Management",
+        "metric_collection": [
+            "Centralized off-chain dashboard: transaction success rates, gas consumption, heuristic utilization, risk exposure.",
+        ],
+        "adaptive_updates": [
+            "Optional: federated RL or meta-learning across platforms; verifiable off-chain updates with zkSNARK validation on-chain.",
+        ],
+        "compliance_explainability": [
+            "Export explainability logs per platform: SHAP-like contributions, heuristic choice metadata; MiCA/regulatory audit trail.",
+        ],
+    },
+    "phase_5_improvement": {
+        "name": "Continuous Improvement",
+        "policy_retraining": [
+            "Periodically retrain RL controller with updated transaction data; recompile decision tree and redeploy with minimal disruption.",
+        ],
+        "heuristic_expansion": [
+            "Add new rules for emerging protocols or market conditions; ensure backward compatibility with existing state vectors.",
+        ],
+        "cross_protocol_coordination": [
+            "Optional: arbitrage or liquidity-balancing heuristics across platforms; monitor cross-chain state for consistent rule application.",
+        ],
+    },
+    "deliverables_per_platform": [
+        "Hyper-heuristic smart contract deployed on-chain",
+        "Serialized RL decision policy (decision tree)",
+        "Protocol-specific low-level heuristic library",
+        "Logging and explainability modules",
+        "Off-chain dashboard for metrics, monitoring, and optional federated updates",
+    ],
+}
+
+
+def get_hyper_heuristic_integration_plan_doc() -> str:
+    """Return the full narrative platform integration plan (Phase 0–5 and deliverables) for docs or export."""
+    return r"""
+HYPER-HEURISTIC SMART CONTRACT — MULTI-PROTOCOL / MULTI-CHAIN PLATFORM INTEGRATION PLAN
+Support for multi-protocol and multi-chain deployment while preserving on-chain adaptability,
+gas efficiency, and auditability.
+
+——— Phase 0: Preliminary Assessment ———
+• Platform Mapping: Identify target blockchains (Ethereum L1, Polygon, BSC, Avalanche);
+  target DeFi protocols per platform (Uniswap/Sushiswap, Aave/Compound, Curve, Balancer);
+  document EVM versions, gas model, oracle access.
+• Heuristic Library Audit: Review low-level heuristics for protocol compatibility;
+  identify protocol-specific parameters (slippage, LTV, collateral types).
+• State Feature Analysis: Map on-chain features per platform (gas price, pool reserves,
+  oracle lag, token volatility); determine availability and cost (on-chain vs oracles).
+
+——— Phase 1: Cross-Platform Abstraction Layer ———
+• Contract Wrapper: Thin abstraction for feature extraction, oracle reading, heuristic dispatch, logging.
+• State Normalization Module: Standardize feature vectors (scale gas, normalize LTV, bucket volatility)
+  so the high-level controller operates consistently across blockchains.
+• Decision Policy Serialization: Compile RL policy into platform-agnostic decision tree or lookup table;
+  deploy on EVM-compatible chains without changing policy logic.
+
+——— Phase 2: Protocol-Specific Integration ———
+• DEX Integration: Wrap swaps with hyper-heuristic controller — Uniswap/Sushiswap (slippage, routing),
+  Curve/Balancer (pool allocation); event logging for success/failure and gas.
+• Lending/Borrowing Integration: Wrap with adaptive LTV and interest rate heuristics —
+  Aave/Compound (collateral factor, liquidation thresholds); protocol-specific safety margins.
+• Oracle Layer: Chainlink or custom feeds per platform; fallbacks for missing or delayed data.
+
+——— Phase 3: Deployment & Testing ———
+• Testnet Deployment: Deploy on each testnet (Ethereum→Goerli, Polygon→Mumbai, BSC→Testnet);
+  validate gas per heuristic, decision correctness, logging and audit trail.
+• Simulation with Historical Data: Replay historical tx per platform; verify success and gas gains;
+  stress-test under simulated volatility.
+• Security Audit: Formal verification of decision logic and heuristics; penetration testing;
+  fallback heuristics if RL policy fails.
+
+——— Phase 4: Cross-Platform Monitoring and Management ———
+• Metric Collection: Off-chain dashboard — tx success rates, gas, heuristic utilization, risk exposure.
+• Adaptive Policy Updates: Optional federated RL or meta-learning; verifiable off-chain updates
+  with zkSNARK validation on-chain.
+• Compliance & Explainability: Export explainability logs per platform (SHAP-like, heuristic metadata);
+  regulatory audit trail (e.g. MiCA).
+
+——— Phase 5: Continuous Improvement ———
+• Policy Re-Training: Periodic retrain with updated data; recompile decision tree and redeploy.
+• Heuristic Expansion: New rules for new protocols or conditions; backward compatibility with state vectors.
+• Cross-Protocol Coordination: Optional arbitrage or liquidity-balancing across platforms;
+  monitor cross-chain state for consistent rules.
+
+——— Deliverables per platform ———
+• Hyper-heuristic smart contract deployed on-chain
+• Serialized RL decision policy (decision tree)
+• Protocol-specific low-level heuristic library
+• Logging and explainability modules
+• Off-chain dashboard for metrics, monitoring, and optional federated updates
+"""
+
+
+def get_festival_aware_hyper_heuristic_summary() -> str:
+    """Return the concise summary and integration checklist for the Festival-Aware Adaptive
+    Hyper-Heuristic Smart Contract (six layers, integration steps, reward, deployment, benefits).
+    Aligns with Festival_Aware_HyperHeuristic_DeFi_Integration.md §11."""
+    return r"""
+FESTIVAL-AWARE ADAPTIVE HYPER-HEURISTIC — CONCISE SUMMARY & INTEGRATION CHECKLIST
+
+——— Layered Architecture (6 layers) ———
+• Config Layer: Dynamic weights (α–ε), w_cultural_min, guardrails, festival flags.
+  On-chain for thresholds; off-chain for RL tuning and federated updates.
+• State Extraction: Gas, slippage, LTV, volatility, behavioral, cultural features;
+  includes CulturalEvent_t and w_cultural(S_t, r_i).
+• Feature Encoding: Normalize & embed all features; preserve numeric scale and categorical festivals.
+• Harper-Henry Guardrails: Filter heuristics violating ethics/market rules or cultural thresholds.
+  Hard constraint for r_i selection; logs for auditability.
+• Policy Lookup (π): Hyper-heuristic controller selects r* from filtered candidates.
+  RL reward modulated by guardrail compliance & cultural adherence.
+• Execution + Metrics/Export: Execute on-chain; record financial, behavioral, cultural, system metrics.
+  Export to CSV/JSON or zkSNARK-friendly proofs; supports federated meta-RL.
+
+——— Integration Steps ———
+1. Define Festival/Cultural Embeddings — map events/holidays to one-hot or embedding vectors; align with w_cultural(S_t, r_i).
+2. Implement Guardrail Engine — pre-filter: slippage ≤ max_slippage, no negative externalities, w_cultural ≥ w_cultural_min; log for MiCA.
+3. Policy Controller Adaptation — feed only filtered heuristics into π(S_t); RL: +ve for compliance, −ve for violations.
+4. Execution Layer — apply r* on EVM; capture financial, behavioral, cultural metrics; structured logs.
+5. Export Layer — CSV/JSON for dashboards; zkSNARK-friendly proofs; optional federated sharing for meta-RL.
+6. Config Layer Dynamic Tuning — α–ε adjustable; w_cultural_min and festival flags for specialized biases.
+
+——— Reward ———
+R_t = α U_transaction + β U_gas + γ U_volatility + δ U_user + ε U_cultural
+U_cultural: w_cultural_min, guardrail compliance, optional festival alignment. Dynamic ε for live cultural weighting.
+
+——— Deployment ———
+• On-chain: guardrail checks & r_i filtering (deterministic). Off-chain: RL retraining with verified signed updates.
+• Gas: only filtered heuristics evaluated; precomputed festival/cultural embeddings.
+• Auditability: every guardrail evaluation, selection, execution logged; export layer = structured, verifiable metrics.
+
+——— Benefits ———
+Determinism and gas efficiency; adaptive festival/cultural awareness; strong Harper-Henry guardrails;
+rich metrics and explainable audit trails; multi-objective reward shaping via config layer.
+"""
+
+
 if __name__ == "__main__":
     asyncio.run(run_mexico_edition_demo())
