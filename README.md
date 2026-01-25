@@ -221,10 +221,12 @@ ACTORS/
 │   ├── 📁 src/                    # Source code
 │   │   └── 📁 actors/             # Core namespaces
 │   │       ├── 🟣 core.clj        # Core functional layer
-│   │       ├── 🟣 trading.clj     # Trading algorithms
-│   │       ├── 🟣 risk.clj        # Risk management
-│   │       ├── 🟣 integration.clj # API integration
-│   │       └── 🟣 webserver.clj   # Web API layer
+│   │       ├── 🟣 financial.clj   # Financial algorithms
+│   │       ├── 🟣 agents.clj      # Agent system
+│   │       ├── 🟣 dag_system.clj  # DAG workflow system
+│   │       └── 🟣 math.clj        # Mathematical operations
+│   ├── 📁 dev/                    # Development utilities
+│   │   └── 🟣 simple_user.clj     # Development helpers
 │   ├── 📁 test/                   # Test files
 │   └── 📄 README.md               # Clojure-specific documentation
 ├── 📁 scripts/                    # 🔧 Utility scripts
@@ -358,7 +360,7 @@ ACTORS/
    ```bash
    cd CLOJURE
    clj -M:dev
-   # In REPL: (require 'user) (user/start-dev-system)
+   # In REPL: (require 'simple_user) (simple_user/start-simple-system)
    ```
 
 7. **🕐 Run the Time Management System Demo**
