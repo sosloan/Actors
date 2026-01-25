@@ -38,7 +38,7 @@ def health_check():
 
 
 @app.route('/api/v1/portfolio/optimize', methods=['POST'])
-async def optimize_portfolio():
+def optimize_portfolio():
     """
     Optimize portfolio using Harper Henry Harmony engine
     
@@ -79,8 +79,8 @@ async def optimize_portfolio():
             'timestamp': datetime.utcnow().isoformat()
         }
         
-        # Run optimization
-        result = await harmony_engine.optimize_harmony_portfolio(portfolio_data)
+        # Run optimization asynchronously
+        result = asyncio.run(harmony_engine.optimize_harmony_portfolio(portfolio_data))
         
         return jsonify({
             'success': True,
