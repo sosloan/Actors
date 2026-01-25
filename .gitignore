@@ -154,3 +154,8 @@ jspm_packages/
 
 # Production actors data
 production_actors/
+
+# ACTORS v2 exports
+exports/
+*.csv
+*.parquet

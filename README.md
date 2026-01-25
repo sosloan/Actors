@@ -22,6 +22,18 @@
 
 **ACTORS** is a next-generation distributed autonomous agent system designed to revolutionize financial trading and enable greater financial freedom through sophisticated AI-driven decision making. The system combines cutting-edge financial derivatives infrastructure with advanced machine learning pipelines and enterprise-grade reliability patterns.
 
+## 🆕 What's New in ACTORS v2
+
+**Enhanced Configuration Layer & Cultural Intelligence** 🎭
+
+- 🔧 **Configuration Layer**: YAML-based dynamic system tuning for agents, metrics, and guardrails
+- 🛡️ **Harper Henry Guardrails**: Ethical, cultural, and behavioral limits enforcement
+- 📊 **Richer Metrics**: Track cultural exposure, festival impact, and social risk
+- 🎉 **Festival-Aware Tilt**: Dynamic portfolio adjustments for regional cultural events
+- 📤 **Multi-Format Export**: CSV, JSON, and Parquet support for metrics
+
+[**→ Read the ACTORS v2 Configuration Guide**](docs/ACTORS_V2_CONFIGURATION_GUIDE.md)
+
 ## 🎯 Core Mission
 
 To create a world-class financial derivatives infrastructure that empowers individuals and institutions to achieve financial freedom through:
@@ -31,6 +43,7 @@ To create a world-class financial derivatives infrastructure that empowers indiv
 - ⚖️ **Risk-Adjusted Portfolio Management**: Advanced risk modeling and stress testing
 - 🌐 **Diversification Across Markets**: Traditional and DeFi market integration
 - 🎯 **Personal Financial Freedom Planning**: FIRE (Financial Independence, Retire Early) optimization
+- 🎭 **Cultural & Ethical Alignment**: Harper Henry guardrails for responsible investing
 
 ## 🏗️ System Architecture
 
@@ -67,6 +80,18 @@ The system deploys thousands of specialized agents across multiple dimensions:
 - 🔌 **Circuit Breaker Agents**: Failure isolation and automatic recovery
 - 📝 **Event Sourcing Agents**: Complete audit trails and compliance
 - 🔄 **Saga Coordination Agents**: Distributed transaction management
+- 🛡️ **Harper Henry Guardrail Agents**: Ethical and cultural compliance enforcement (NEW in v2)
+
+#### **2.5. 🎭 ACTORS v2 Configuration & Guardrails** (`core/`)
+**NEW: Enhanced Configuration Layer & Cultural Intelligence**
+
+- 🔧 **Configuration Loader**: YAML-based dynamic system configuration
+- 🛡️ **Harper Henry Guardrails**: Ethical investment and cultural alignment enforcement
+- 🎉 **Festival Calendar**: Regional cultural event tracking and portfolio tilt
+- 📊 **Metrics Tracker**: Enhanced cultural, ethical, and festival-aware metrics
+- 📤 **Metrics Exporter**: Multi-format export (CSV, JSON, Parquet)
+
+[**→ See ACTORS v2 Configuration Guide**](docs/ACTORS_V2_CONFIGURATION_GUIDE.md)
 
 #### **3. 🧠 Machine Learning Pipeline** (`core/`)
 - 🎭 **Behavior Prediction Models**: Personality-based trading behavior analysis
@@ -163,9 +188,11 @@ The system operates on the concept of **Jackie Robinson Resonance** - the idea t
 ACTORS/
 ├── 📄 README.md                    # This file
 ├── 📄 PROJECT_PROMPT.md           # Detailed project specification
+├── 📄 config.yaml                 # 🆕 ACTORS v2 configuration
 ├── 📄 .gitignore                  # Git ignore rules
 ├── 📁 docs/                       # 📚 Documentation
 │   ├── 📄 ACTORS_INTEGRATION_SUMMARY.md
+│   ├── 📄 ACTORS_V2_CONFIGURATION_GUIDE.md  # 🆕 v2 Guide
 │   ├── 📄 PRODUCTION_GRADE_PATTERNS_SUMMARY.md
 │   ├── 📄 ENHANCED_TIME_MANAGEMENT_FEATURES.md
 │   └── 📄 ... (other documentation)
@@ -187,7 +214,12 @@ ACTORS/
 │   ├── 🐍 harper_henry_harmony.py
 │   ├── 🐍 homestay_portfolio_allocator.py
 │   ├── 🐍 homestay_portfolio_optimization_engine.py
-│   └── 🐍 free_class_definition.py
+│   ├── 🐍 free_class_definition.py
+│   ├── 🐍 config_loader.py          # 🆕 Configuration management
+│   ├── 🐍 harper_henry_guardrails.py  # 🆕 Behavioral guardrails
+│   ├── 🐍 festival_calendar.py      # 🆕 Festival tracking
+│   ├── 🐍 metrics_tracker.py        # 🆕 Enhanced metrics
+│   └── 🐍 metrics_exporter.py       # 🆕 Multi-format export
 ├── 📁 GOS/                        # 🔵 Go implementations
 │   ├── 🔵 derivatives_gateway.go
 │   ├── 🔵 derivatives_gateway_demo.go
@@ -291,6 +323,19 @@ ACTORS/
    ```
 
 ### **🚀 Quick Start**
+
+0. **🆕 Try ACTORS v2 Configuration & Guardrails Demo**
+   ```bash
+   # Run the comprehensive ACTORS v2 demo
+   python examples/actors_v2_demo.py
+   
+   # Demonstrates:
+   # - Configuration layer
+   # - Harper Henry guardrails
+   # - Festival-aware portfolio management
+   # - Enhanced metrics tracking
+   # - Multi-format export
+   ```
 
 1. **🌿 Start the Environmental Metrics Server**
    ```bash
