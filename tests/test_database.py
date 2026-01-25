@@ -255,7 +255,9 @@ class TestL2AnalyticsStore:
         import os
         
         # Use temporary file for testing
-        temp_db = tempfile.mktemp(suffix='.duckdb')
+        with tempfile.NamedTemporaryFile(suffix='.duckdb', delete=True) as temp_file:
+            temp_db = temp_file.name
+        # File is deleted when context exits, DuckDB can create it fresh
         config = L2Config(duckdb_path=temp_db)
         
         try:
@@ -273,7 +275,9 @@ class TestL2AnalyticsStore:
         import tempfile
         import os
         
-        temp_db = tempfile.mktemp(suffix='.duckdb')
+        with tempfile.NamedTemporaryFile(suffix='.duckdb', delete=True) as temp_file:
+            temp_db = temp_file.name
+        # File is deleted when context exits, DuckDB can create it fresh
         config = L2Config(duckdb_path=temp_db)
         
         try:
@@ -292,7 +296,9 @@ class TestL2AnalyticsStore:
         import tempfile
         import os
         
-        temp_db = tempfile.mktemp(suffix='.duckdb')
+        with tempfile.NamedTemporaryFile(suffix='.duckdb', delete=True) as temp_file:
+            temp_db = temp_file.name
+        # File is deleted when context exits, DuckDB can create it fresh
         config = L2Config(duckdb_path=temp_db)
         
         try:

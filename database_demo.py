@@ -150,7 +150,9 @@ def demo_l2_analytics():
     import os
     
     # Use temporary database
-    temp_db = tempfile.mktemp(suffix='.duckdb')
+    with tempfile.NamedTemporaryFile(suffix='.duckdb', delete=True) as temp_file:
+        temp_db = temp_file.name
+    # File is deleted when context exits, DuckDB can create it fresh
     
     try:
         from database.config import L2Config
