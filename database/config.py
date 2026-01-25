@@ -50,12 +50,25 @@ class L3Config:
 
 
 @dataclass
+class GeospatialConfig:
+    """Geospatial Data Configuration"""
+    cache_dir: str = "/tmp/geospatial_cache"
+    max_raster_size_mb: int = 500
+    enable_caching: bool = True
+    default_projection: str = "EPSG:4326"  # WGS84
+    parquet_export_path: str = "/tmp/geospatial_exports"
+    enable_compression: bool = True
+    tile_size: int = 256  # For raster tiling
+
+
+@dataclass
 class DatabaseConfig:
     """Complete Database Configuration"""
     l0: L0Config
     l1: L1Config
     l2: L2Config
     l3: L3Config
+    geospatial: GeospatialConfig
     
     @classmethod
     def default(cls) -> "DatabaseConfig":
@@ -64,7 +77,8 @@ class DatabaseConfig:
             l0=L0Config(),
             l1=L1Config(),
             l2=L2Config(),
-            l3=L3Config()
+            l3=L3Config(),
+            geospatial=GeospatialConfig()
         )
     
     def to_dict(self) -> Dict[str, Any]:
@@ -97,5 +111,14 @@ class DatabaseConfig:
                 "command_timeout_ms": self.l3.command_timeout_ms,
                 "enable_persistence": self.l3.enable_persistence,
                 "tick_sequence_key": self.l3.tick_sequence_key,
+            },
+            "geospatial": {
+                "cache_dir": self.geospatial.cache_dir,
+                "max_raster_size_mb": self.geospatial.max_raster_size_mb,
+                "enable_caching": self.geospatial.enable_caching,
+                "default_projection": self.geospatial.default_projection,
+                "parquet_export_path": self.geospatial.parquet_export_path,
+                "enable_compression": self.geospatial.enable_compression,
+                "tile_size": self.geospatial.tile_size,
             }
         }

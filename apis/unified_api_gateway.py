@@ -19,6 +19,8 @@ from embedding_search import EmbeddingSearchEngine
 from ml_pipeline_integration import MLEnhancedSpeechToTradingSystem
 from speech_to_trading_connector import SpeechToTradingConnector, AudioSource
 from advanced_time_manager import AdvancedTimeManager
+from geospatial_engine import GeospatialEngine, GDAL_AVAILABLE
+from database.config import GeospatialConfig
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -32,12 +34,14 @@ search_engine = None
 ml_speech_system = None
 speech_connector = None
 time_manager = None
+geospatial_engine = None
 
 def initialize_systems():
     """Initialize all ACTORS systems"""
-    global search_engine, ml_speech_system, speech_connector, time_manager
+    global search_engine, ml_speech_system, speech_connector, time_manager, geospatial_engine
     
     success_count = 0
+    total_systems = 5
     
     # Initialize Embedding Search Engine
     try:
@@ -74,7 +78,20 @@ def initialize_systems():
     except Exception as e:
         logger.error(f"❌ Failed to initialize time manager: {e}")
     
-    return success_count == 4
+    # Initialize Geospatial Engine
+    try:
+        if GDAL_AVAILABLE:
+            config = GeospatialConfig()
+            geospatial_engine = GeospatialEngine(cache_dir=config.cache_dir)
+            asyncio.run(geospatial_engine.initialize())
+            logger.info("✅ Geospatial engine initialized")
+            success_count += 1
+        else:
+            logger.warning("⚠️  GDAL not available - Geospatial features disabled")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize geospatial engine: {e}")
+    
+    return success_count == total_systems
 
 # ============================================================================
 # SYSTEM HEALTH AND STATUS
@@ -87,7 +104,8 @@ def health_check():
         'embedding_search': search_engine is not None,
         'ml_speech_system': ml_speech_system is not None,
         'speech_connector': speech_connector is not None,
-        'time_manager': time_manager is not None
+        'time_manager': time_manager is not None,
+        'geospatial_engine': geospatial_engine is not None
     }
     
     overall_health = all(systems_status.values())
@@ -97,6 +115,7 @@ def health_check():
         'service': 'ACTORS Unified API Gateway',
         'timestamp': time.time(),
         'systems': systems_status,
+        'gdal_available': GDAL_AVAILABLE,
         'uptime': time.time() - start_time if 'start_time' in globals() else 0
     })
 
