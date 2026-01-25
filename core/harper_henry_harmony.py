@@ -291,6 +291,8 @@ class HarperHenryHarmonyResult:
         result = asdict(self)
         # Convert datetime objects to ISO format strings
         result['created_at'] = self.created_at.isoformat()
+        # Convert enum to string value
+        result['engine_type'] = self.engine_type.value
         for i, ht in enumerate(self.harmony_types_used):
             result['harmony_types_used'][i]['created_at'] = ht.created_at.isoformat()
             for j, craft in enumerate(ht.traditional_crafts_available):
