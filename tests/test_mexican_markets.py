@@ -481,6 +481,10 @@ class TestMexicanMarketsAllocator:
 class TestPortfolioValidation:
     """Test portfolio validation and constraints"""
     
+    # Test tolerance constants
+    RETURN_VARIANCE_TOLERANCE = 0.5
+    INNOVATION_VARIANCE_TOLERANCE = 0.1
+    
     @pytest.mark.asyncio
     async def test_allocation_constraints(self):
         """Test that allocation constraints are respected"""
@@ -514,10 +518,10 @@ class TestPortfolioValidation:
         )
         
         # Aggressive should have higher expected return
-        assert aggressive.expected_return >= conservative.expected_return - 0.5  # Allow small variance
+        assert aggressive.expected_return >= conservative.expected_return - self.RETURN_VARIANCE_TOLERANCE
         
         # Aggressive should have higher innovation exposure
-        assert aggressive.innovation_exposure >= conservative.innovation_exposure - 0.1  # Allow small variance
+        assert aggressive.innovation_exposure >= conservative.innovation_exposure - self.INNOVATION_VARIANCE_TOLERANCE
 
 
 def test_imports():

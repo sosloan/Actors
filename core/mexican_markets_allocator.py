@@ -134,13 +134,20 @@ class MexicanMarketsAllocator:
     Strong emphasis on Guadalajara's tech and innovation ecosystem
     """
     
-    def __init__(self):
+    def __init__(self, risk_free_rate: float = 10.0):
+        """
+        Initialize the Mexican Markets Allocator
+        
+        Args:
+            risk_free_rate: Annual risk-free rate (default: 10.0 for Mexican CETES)
+        """
         self.economic_indicators = {}
         self.guadalajara_ecosystem = None
         self.asset_universe = []
         self.optimization_history = []
         self.min_guadalajara_allocation = 0.15  # Minimum 15% to Guadalajara tech
         self.max_asset_class_allocation = 0.40   # Maximum 40% in any asset class
+        self.risk_free_rate = risk_free_rate     # Configurable risk-free rate
         
     async def initialize_economic_indicators(self) -> Dict[RegionalFocus, EconomicIndicator]:
         """Initialize regional economic indicators"""
@@ -611,9 +618,8 @@ class MexicanMarketsAllocator:
         )
         portfolio_volatility = np.sqrt(portfolio_variance)
         
-        # Risk-free rate assumption for Mexico (CETES rate ~10%)
-        risk_free_rate = 10.0
-        sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_volatility if portfolio_volatility > 0 else 0
+        # Calculate Sharpe ratio using configured risk-free rate
+        sharpe_ratio = (portfolio_return - self.risk_free_rate) / portfolio_volatility if portfolio_volatility > 0 else 0
         
         # Calculate diversification score
         allocation_values = list(allocations.values())
