@@ -90,24 +90,38 @@ class DatabaseManager:
             
         Returns:
             ID of inserted record
-        """
-        with self.get_connection() as conn:
-            result = conn.execute("""
-                INSERT INTO market_data (symbol, timestamp, open, high, low, close, volume, source)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                RETURNING id
-            """, [
-                data['symbol'],
-                data['timestamp'],
-                data.get('open'),
-                data.get('high'),
-                data.get('low'),
-                data.get('close'),
-                data.get('volume'),
-                data.get('source', 'unknown')
-            ]).fetchone()
             
-            return result[0] if result else None
+        Raises:
+            ValueError: If required fields are missing
+            Exception: If database insertion fails
+        """
+        # Validate required fields
+        required_fields = ['symbol', 'timestamp']
+        for field in required_fields:
+            if field not in data:
+                raise ValueError(f"Missing required field: {field}")
+        
+        try:
+            with self.get_connection() as conn:
+                result = conn.execute("""
+                    INSERT INTO market_data (symbol, timestamp, open, high, low, close, volume, source)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    RETURNING id
+                """, [
+                    data['symbol'],
+                    data['timestamp'],
+                    data.get('open'),
+                    data.get('high'),
+                    data.get('low'),
+                    data.get('close'),
+                    data.get('volume'),
+                    data.get('source', 'unknown')
+                ]).fetchone()
+                
+                return result[0] if result else None
+        except Exception as e:
+            logger.error(f"Failed to insert market data for {data.get('symbol', 'unknown')}: {e}")
+            raise
     
     def insert_trade(self, trade: Dict[str, Any]) -> int:
         """
@@ -118,26 +132,40 @@ class DatabaseManager:
             
         Returns:
             ID of inserted record
-        """
-        with self.get_connection() as conn:
-            result = conn.execute("""
-                INSERT INTO trade_history (order_id, portfolio_id, symbol, side, quantity, price, order_type, status, executed_at, metadata)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                RETURNING id
-            """, [
-                trade['order_id'],
-                trade['portfolio_id'],
-                trade['symbol'],
-                trade['side'],
-                trade['quantity'],
-                trade['price'],
-                trade['order_type'],
-                trade['status'],
-                trade.get('executed_at'),
-                None  # metadata as JSON
-            ]).fetchone()
             
-            return result[0] if result else None
+        Raises:
+            ValueError: If required fields are missing
+            Exception: If database insertion fails
+        """
+        # Validate required fields
+        required_fields = ['order_id', 'portfolio_id', 'symbol', 'side', 'quantity', 'price', 'order_type', 'status']
+        for field in required_fields:
+            if field not in trade:
+                raise ValueError(f"Missing required field: {field}")
+        
+        try:
+            with self.get_connection() as conn:
+                result = conn.execute("""
+                    INSERT INTO trade_history (order_id, portfolio_id, symbol, side, quantity, price, order_type, status, executed_at, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    RETURNING id
+                """, [
+                    trade['order_id'],
+                    trade['portfolio_id'],
+                    trade['symbol'],
+                    trade['side'],
+                    trade['quantity'],
+                    trade['price'],
+                    trade['order_type'],
+                    trade['status'],
+                    trade.get('executed_at'),
+                    None  # metadata as JSON
+                ]).fetchone()
+                
+                return result[0] if result else None
+        except Exception as e:
+            logger.error(f"Failed to insert trade {trade.get('order_id', 'unknown')}: {e}")
+            raise
     
     def insert_portfolio_position(self, position: Dict[str, Any]) -> int:
         """
@@ -319,9 +347,11 @@ class DatabaseManager:
         with self.get_connection() as conn:
             stats = {}
             
-            # Get table counts
-            tables = ['market_data', 'portfolio_positions', 'trade_history', 'agent_metrics', 'risk_metrics']
-            for table in tables:
+            # Get table counts - using validated table names from schema
+            # Table names are hardcoded from schema to prevent SQL injection
+            validated_tables = ['market_data', 'portfolio_positions', 'trade_history', 'agent_metrics', 'risk_metrics']
+            
+            for table in validated_tables:
                 count = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
                 stats[f"{table}_count"] = count
             

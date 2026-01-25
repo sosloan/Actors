@@ -117,6 +117,11 @@ def add_sample_trading_data(db):
     # Add agent metrics
     logger.info("Adding sample agent metrics...")
     agent_types = ['market_data', 'technical_analysis', 'sentiment', 'portfolio', 'execution', 'risk']
+    # 8D Narrative Space dimensions from ACTORS project:
+    # Each dimension represents a different aspect of agent behavior and system performance
+    # SPEED: High-frequency execution, LOYALTY: Long-term consistency, PASSION: Innovation/Risk-taking
+    # SACRED: Risk management/preservation, COURAGE: Volatility handling, WISDOM: Analysis depth
+    # LOVE: Social impact focus, TRUTH: Market microstructure accuracy
     dimensions = ['SPEED', 'LOYALTY', 'PASSION', 'SACRED', 'COURAGE', 'WISDOM', 'LOVE', 'TRUTH']
     
     for agent_type in agent_types:
