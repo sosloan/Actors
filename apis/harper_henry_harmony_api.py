@@ -358,6 +358,8 @@ def get_metrics():
 
 
 if __name__ == '__main__':
+    import os
+    
     print("🎭 Starting Harper Henry Harmony API...")
     print("📊 Mathematical precision meets cultural exchange harmony")
     print("🌐 API Server running on http://localhost:5002")
@@ -370,4 +372,6 @@ if __name__ == '__main__':
     print("  GET  /api/v1/optimization/engines     - Optimization engines")
     print("  GET  /api/v1/metrics                  - Real-time metrics")
     
-    app.run(host='0.0.0.0', port=5002, debug=True)
+    # Only enable debug mode in development environment
+    debug_mode = os.getenv('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=5002, debug=debug_mode)
