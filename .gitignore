@@ -152,6 +152,10 @@ jspm_packages/
 # DynamoDB Local files
 .dynamodb/
 
+# DuckDB database files
+*.duckdb
+*.duckdb.wal
+
 # TernJS port file
 .tern-port
 
