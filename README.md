@@ -315,7 +315,7 @@ ACTORS/
    clj -M:test       # Clojure tests (from CLOJURE)
    ```
 
-7. **🐳 Docker Support (Optional)**
+8. **🐳 Docker Support (Optional)**
    ```bash
    cd apis/server
    docker build -t actors-metrics-server .
@@ -424,6 +424,9 @@ Complete automation of personal finance management, from budgeting to investment
 ### **🏭 Production-Grade Reliability**
 Enterprise patterns including Circuit Breaker for failure isolation, Event Sourcing for complete audit trails, Distributed Tracing for system observability, and Saga Pattern for complex transaction management, ensuring mission-critical financial operations run with 99.9% uptime and complete data integrity.
 
+### **🟣 Functional Programming Excellence**
+Pure functional programming layer built with Clojure provides immutable data structures, composable functions, and concurrent processing capabilities. This enables thread-safe operations, predictable behavior, and elegant solutions to complex financial algorithms while maintaining sub-millisecond performance for risk calculations and portfolio optimization.
+
 ## 📊 Performance & Reliability
 
 - **🏥 99.9% Uptime**: Circuit breaker protection prevents cascading failures
@@ -460,8 +463,8 @@ The system embodies the principle that technology should serve humanity's highes
 ## 📞 Support
 
 - **📚 Documentation**: [docs/](docs/)
-- **🐛 Issues**: [GitHub Issues](https://github.com/yourusername/ACTORS/issues)
-- **💬 Discussions**: [GitHub Discussions](https://github.com/yourusername/ACTORS/discussions)
+- **🐛 Issues**: [GitHub Issues](https://github.com/sosloan/Actors/issues)
+- **💬 Discussions**: [GitHub Discussions](https://github.com/sosloan/Actors/discussions)
 - **📧 Email**: support@actors-finance.com
 
 ## 🙏 Acknowledgments
