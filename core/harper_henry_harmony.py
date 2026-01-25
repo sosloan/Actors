@@ -288,15 +288,29 @@ class HarperHenryHarmonyResult:
     
     def to_dict(self) -> Dict[str, Any]:
         """Export result to dictionary format"""
+        import copy
+        
+        def convert_value(obj):
+            """Recursively convert non-serializable objects"""
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            elif isinstance(obj, Enum):
+                return obj.value
+            elif isinstance(obj, dict):
+                return {k: convert_value(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_value(item) for item in obj]
+            elif hasattr(obj, '__dict__'):
+                # Handle dataclass-like objects
+                try:
+                    return {k: convert_value(v) for k, v in asdict(obj).items()}
+                except:
+                    return str(obj)
+            else:
+                return obj
+        
         result = asdict(self)
-        # Convert datetime objects to ISO format strings
-        result['created_at'] = self.created_at.isoformat()
-        # Convert enum to string value
-        result['engine_type'] = self.engine_type.value
-        for i, ht in enumerate(self.harmony_types_used):
-            result['harmony_types_used'][i]['created_at'] = ht.created_at.isoformat()
-            for j, craft in enumerate(ht.traditional_crafts_available):
-                result['harmony_types_used'][i]['traditional_crafts_available'][j]['created_at'] = craft.created_at.isoformat()
+        result = convert_value(result)
         return result
     
     def to_json(self, pretty: bool = True) -> str:
