@@ -29,7 +29,7 @@ try:
     GDAL_AVAILABLE = True
 except ImportError:
     GDAL_AVAILABLE = False
-    print("Warning: GDAL/geospatial dependencies not available. Install with: pip install GDAL rasterio geopandas")
+    print("Warning: GDAL/geospatial dependencies not available. Install with: pip install GDAL rasterio geopandas shapely")
 
 
 @dataclass
@@ -88,7 +88,7 @@ class GeospatialEngine:
     def __init__(self, cache_dir: str = "/tmp/geospatial_cache"):
         """Initialize geospatial engine"""
         if not GDAL_AVAILABLE:
-            raise ImportError("GDAL dependencies not available. Install with: pip install GDAL rasterio geopandas")
+            raise ImportError("GDAL dependencies not available. Install with: pip install GDAL rasterio geopandas shapely")
         
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
