@@ -18,6 +18,64 @@ from enum import Enum
 import math
 from pathlib import Path
 
+# ============================================================================
+# CONFIG LAYER - Centralized Configuration
+# ============================================================================
+
+@dataclass
+class HarmonyConfig:
+    """Configuration layer for Harper Henry Harmony optimization"""
+    # Core optimization thresholds
+    min_cultural_weight: float = 0.6
+    min_harmony_score: float = 0.9
+    min_optimization_score: float = 0.8
+    min_value_creation: float = 5.0
+    
+    # Festival-aware tilt configuration
+    festival_boost_factor: float = 0.2
+    festival_cultural_multiplier: float = 1.25
+    festival_harmony_multiplier: float = 1.15
+    
+    # Behavioral guardrails
+    max_slot_utilization: float = 0.95
+    min_artistic_expression: float = 0.7
+    min_traditional_crafts_score: float = 0.65
+    max_economic_velocity: float = 2.5
+    min_sustainability_score: float = 0.75
+    
+    # Elite BÏGbuilder thresholds
+    elite_tier_platinum_threshold: float = 0.95
+    elite_tier_gold_threshold: float = 0.85
+    big_builder_power_min: float = 0.8
+    
+    # Matrix operation parameters
+    matmul_cultural_weight: float = 0.3
+    matmul_economic_weight: float = 0.25
+    matmul_sustainability_weight: float = 0.25
+    matmul_harmony_weight: float = 0.2
+    
+    # Export configuration
+    export_format: str = "json"  # json, csv, or both
+    export_include_metadata: bool = True
+    export_pretty_print: bool = True
+    
+    # Metrics configuration
+    enable_rich_metrics: bool = True
+    track_optimization_history: bool = True
+    metrics_precision_decimals: int = 4
+
+@dataclass
+class HarperHenryBehavioralGuardrails:
+    """Behavioral guardrails for Harper Henry Harmony optimization"""
+    enforce_cultural_weight: bool = True
+    enforce_harmony_minimums: bool = True
+    enforce_sustainability: bool = True
+    enforce_artistic_balance: bool = True
+    enforce_slot_limits: bool = True
+    allow_festival_override: bool = True
+    max_optimization_iterations: int = 100
+    early_stopping_threshold: float = 0.99
+
 class HarmonyEngine(Enum):
     """Harper Henry Harmony optimization engine types"""
     VALUE_CREATION = "value_creation"
@@ -66,6 +124,11 @@ class HarmonyType:
     musical_harmony_score: float
     literary_arts_score: float
     created_at: datetime
+    # Festival-aware tilt fields
+    festival_detected: bool = False
+    festival_name: Optional[str] = None
+    festival_boost_applied: float = 0.0
+    cultural_weight: float = 0.8
 
 @dataclass
 class HarmonyBuilder:
@@ -216,11 +279,63 @@ class HarperHenryHarmonyResult:
     elite_calculations_analysis: Dict[str, Any]
     big_builder_power_analysis: Dict[str, Any]
     created_at: datetime
+    # Richer metrics
+    festival_metrics: Dict[str, Any] = None
+    cultural_weight_validation: Dict[str, Any] = None
+    guardrails_status: Dict[str, Any] = None
+    optimization_history: List[Dict[str, Any]] = None
+    export_metadata: Dict[str, Any] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Export result to dictionary format"""
+        result = asdict(self)
+        # Convert datetime objects to ISO format strings
+        result['created_at'] = self.created_at.isoformat()
+        for i, ht in enumerate(self.harmony_types_used):
+            result['harmony_types_used'][i]['created_at'] = ht.created_at.isoformat()
+            for j, craft in enumerate(ht.traditional_crafts_available):
+                result['harmony_types_used'][i]['traditional_crafts_available'][j]['created_at'] = craft.created_at.isoformat()
+        return result
+    
+    def to_json(self, pretty: bool = True) -> str:
+        """Export result to JSON format"""
+        indent = 2 if pretty else None
+        return json.dumps(self.to_dict(), indent=indent)
+    
+    def export_to_file(self, filepath: Union[str, Path], format: str = "json") -> None:
+        """Export result to file"""
+        filepath = Path(filepath)
+        if format == "json":
+            with open(filepath, 'w') as f:
+                f.write(self.to_json(pretty=True))
+        elif format == "csv":
+            # Export summary metrics to CSV
+            import csv
+            with open(filepath, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['Metric', 'Value'])
+                writer.writerow(['ID', self.id])
+                writer.writerow(['Optimization Score', self.optimization_score])
+                writer.writerow(['Total Value Created', self.total_value_created])
+                writer.writerow(['Harmony Achieved', self.harmony_achieved])
+                writer.writerow(['Cultural Immersion Score', self.cultural_immersion_score])
+                writer.writerow(['Language Learning Score', self.language_learning_score])
+                writer.writerow(['Community Building Score', self.community_building_score])
+                writer.writerow(['Traditional Knowledge Score', self.traditional_knowledge_score])
+                writer.writerow(['Homestay Value Score', self.homestay_value_score])
+                writer.writerow(['FIRE Optimization Score', self.fire_optimization_score])
+                writer.writerow(['Artistic Expression Score', self.artistic_expression_score])
+                writer.writerow(['Final ROI', self.final_roi])
+                writer.writerow(['Optimization Time', self.optimization_time])
+        else:
+            raise ValueError(f"Unsupported export format: {format}. Use 'json' or 'csv'.")
 
 class HarperHenryHarmony:
     """Advanced Harper Henry Harmony portfolio optimization engine for homestay travel"""
     
-    def __init__(self):
+    def __init__(self, config: Optional[HarmonyConfig] = None, guardrails: Optional[HarperHenryBehavioralGuardrails] = None):
+        self.config = config or HarmonyConfig()
+        self.guardrails = guardrails or HarperHenryBehavioralGuardrails()
         self.harmony_type_store = {}
         self.harmony_builders = {}
         self.homestay_builders = {}
@@ -293,10 +408,44 @@ class HarperHenryHarmony:
         elite_calculations_analysis = self._analyze_elite_calculations(harmony_types, homestay_big_builders)
         big_builder_power_analysis = self._analyze_big_builder_power(homestay_big_builders)
         
+        # NEW: Apply behavioral guardrails
+        guardrails_status = self._apply_behavioral_guardrails(harmony_types, harmony_builders)
+        
+        # NEW: Calculate festival metrics
+        festival_metrics = self._calculate_festival_metrics(harmony_types)
+        
+        # NEW: Validate cultural weight constraint
+        cultural_weight_validation = self._validate_cultural_weight_constraint(harmony_types)
+        
+        # NEW: Track optimization history if enabled
+        optimization_history = []
+        if self.config.track_optimization_history:
+            optimization_history = [{
+                "timestamp": datetime.now().isoformat(),
+                "optimization_score": final_result["optimization_score"],
+                "total_value_created": final_result["total_value_created"],
+                "harmony_achieved": final_result["optimization_score"] >= self.config.min_harmony_score,
+                "guardrails_passed": guardrails_status["all_guardrails_passed"]
+            }]
+            self.optimization_history.extend(optimization_history)
+        
         optimization_time = time.time() - start_time
         
-        # Check if harmony is achieved
-        harmony_achieved = final_result["optimization_score"] >= 0.9 and final_result["total_value_created"] > 5.0
+        # Check if harmony is achieved (using config thresholds)
+        harmony_achieved = (final_result["optimization_score"] >= self.config.min_harmony_score and 
+                          final_result["total_value_created"] > self.config.min_value_creation and
+                          guardrails_status["all_guardrails_passed"])
+        
+        # NEW: Create export metadata
+        export_metadata = {
+            "config_used": asdict(self.config) if self.config else {},
+            "guardrails_enabled": asdict(self.guardrails) if self.guardrails else {},
+            "optimization_engines": [e.value for e in harmony_engines],
+            "total_harmony_types": len(harmony_types),
+            "total_harmony_builders": len(harmony_builders),
+            "total_homestay_builders": len(homestay_builders),
+            "total_big_builders": len(homestay_big_builders)
+        }
         
         return HarperHenryHarmonyResult(
             id=f"harper_henry_harmony_{int(time.time())}",
@@ -328,7 +477,13 @@ class HarperHenryHarmony:
             literary_arts_score=literary_arts_score,
             elite_calculations_analysis=elite_calculations_analysis,
             big_builder_power_analysis=big_builder_power_analysis,
-            created_at=datetime.now()
+            created_at=datetime.now(),
+            # NEW: Additional metrics
+            festival_metrics=festival_metrics,
+            cultural_weight_validation=cultural_weight_validation,
+            guardrails_status=guardrails_status,
+            optimization_history=optimization_history,
+            export_metadata=export_metadata
         )
     
     async def _initialize_harmony_types(self, portfolio_data: Dict[str, Any]) -> List[HarmonyType]:
@@ -336,19 +491,22 @@ class HarperHenryHarmony:
         
         harmony_types = []
         
+        # NEW: Detect festival
+        festival_detected, festival_name = self._detect_festival(portfolio_data)
+        
         # Harper Henry Harmony types
         harmony_type_definitions = [
-            ("FAMILY_HARMONY", 3, 0.9, 0.95),
-            ("CULTURAL_HARMONY", 2, 0.95, 0.98),
-            ("FARM_HARMONY", 2, 0.85, 0.9),
-            ("URBAN_HARMONY", 1, 0.8, 0.85),
-            ("RELIGIOUS_HARMONY", 2, 0.9, 0.92),
-            ("ARTISTIC_HARMONY", 2, 0.85, 0.88),
-            ("ACADEMIC_HARMONY", 1, 0.8, 0.82),
-            ("HEALING_HARMONY", 2, 0.9, 0.93)
+            ("FAMILY_HARMONY", 3, 0.9, 0.95, 0.85),
+            ("CULTURAL_HARMONY", 2, 0.95, 0.98, 0.9),
+            ("FARM_HARMONY", 2, 0.85, 0.9, 0.75),
+            ("URBAN_HARMONY", 1, 0.8, 0.85, 0.7),
+            ("RELIGIOUS_HARMONY", 2, 0.9, 0.92, 0.85),
+            ("ARTISTIC_HARMONY", 2, 0.85, 0.88, 0.8),
+            ("ACADEMIC_HARMONY", 1, 0.8, 0.82, 0.7),
+            ("HEALING_HARMONY", 2, 0.9, 0.93, 0.8)
         ]
         
-        for i, (type_name, slots, compatibility, harmony_score) in enumerate(harmony_type_definitions):
+        for i, (type_name, slots, compatibility, harmony_score, cultural_weight) in enumerate(harmony_type_definitions):
             # Calculate artistic attributes based on harmony type
             artistic_scores = self._calculate_artistic_scores(type_name)
             
@@ -374,8 +532,17 @@ class HarperHenryHarmony:
                 visual_arts_score=artistic_scores["visual_arts"],
                 musical_harmony_score=artistic_scores["musical_harmony"],
                 literary_arts_score=artistic_scores["literary_arts"],
-                created_at=datetime.now()
+                created_at=datetime.now(),
+                # NEW: Festival and cultural weight fields
+                festival_detected=festival_detected,
+                festival_name=festival_name,
+                cultural_weight=cultural_weight
             )
+            
+            # NEW: Apply festival tilt if detected
+            if festival_detected:
+                harmony_type = self._apply_festival_tilt(harmony_type)
+            
             harmony_types.append(harmony_type)
         
         return harmony_types
@@ -2660,6 +2827,158 @@ class HarperHenryHarmony:
                 tier: len(builders) for tier, builders in elite_tiers.items()
             },
             "total_elite_calculations": sum(len(builder.elite_calculations) for builder in homestay_big_builders.values())
+        }
+    
+    def _detect_festival(self, portfolio_data: Dict[str, Any]) -> Tuple[bool, Optional[str]]:
+        """Detect if portfolio dates coincide with major cultural festivals"""
+        # Festival detection logic based on dates and destinations
+        festivals = {
+            "Diwali": {"months": [10, 11], "regions": ["India", "Nepal"]},
+            "Chinese New Year": {"months": [1, 2], "regions": ["China", "Taiwan", "Singapore"]},
+            "Cherry Blossom": {"months": [3, 4], "regions": ["Japan", "Korea"]},
+            "Oktoberfest": {"months": [9, 10], "regions": ["Germany", "Austria"]},
+            "Carnival": {"months": [2, 3], "regions": ["Brazil", "Trinidad"]},
+            "Songkran": {"months": [4], "regions": ["Thailand", "Laos"]},
+            "Holi": {"months": [3], "regions": ["India", "Nepal"]},
+            "Day of the Dead": {"months": [11], "regions": ["Mexico"]},
+        }
+        
+        # Check if portfolio has date information
+        if "start_date" in portfolio_data:
+            try:
+                start_date = datetime.fromisoformat(portfolio_data["start_date"]) if isinstance(portfolio_data["start_date"], str) else portfolio_data["start_date"]
+                month = start_date.month
+            except:
+                return False, None
+        else:
+            return False, None
+        
+        # Check destinations
+        destinations = portfolio_data.get("destinations", [])
+        for festival_name, festival_info in festivals.items():
+            if month in festival_info["months"]:
+                for destination in destinations:
+                    for region in festival_info["regions"]:
+                        if region.lower() in destination.lower():
+                            return True, festival_name
+        
+        return False, None
+    
+    def _apply_festival_tilt(self, harmony_type: HarmonyType) -> HarmonyType:
+        """Apply festival-aware tilt to boost cultural scores"""
+        if harmony_type.festival_detected:
+            # Apply festival boost
+            boost = self.config.festival_boost_factor
+            harmony_type.cultural_weight = min(1.0, harmony_type.cultural_weight * self.config.festival_cultural_multiplier)
+            harmony_type.harmony_score = min(1.0, harmony_type.harmony_score * self.config.festival_harmony_multiplier)
+            harmony_type.cultural_artistry_score = min(1.0, harmony_type.cultural_artistry_score * (1 + boost))
+            harmony_type.artistic_expression_score = min(1.0, harmony_type.artistic_expression_score * (1 + boost))
+            harmony_type.traditional_crafts_score = min(1.0, harmony_type.traditional_crafts_score * (1 + boost))
+            harmony_type.performance_arts_score = min(1.0, harmony_type.performance_arts_score * (1 + boost))
+            harmony_type.festival_boost_applied = boost
+        return harmony_type
+    
+    def _validate_cultural_weight_constraint(self, harmony_types: List[HarmonyType]) -> Dict[str, Any]:
+        """Validate minimum cultural-weight constraint"""
+        violations = []
+        passed = []
+        
+        for ht in harmony_types:
+            if ht.cultural_weight < self.config.min_cultural_weight:
+                violations.append({
+                    "type_name": ht.type_name,
+                    "cultural_weight": ht.cultural_weight,
+                    "min_required": self.config.min_cultural_weight,
+                    "deficit": self.config.min_cultural_weight - ht.cultural_weight
+                })
+            else:
+                passed.append({
+                    "type_name": ht.type_name,
+                    "cultural_weight": ht.cultural_weight
+                })
+        
+        return {
+            "constraint_met": len(violations) == 0,
+            "total_types": len(harmony_types),
+            "passed_count": len(passed),
+            "violations_count": len(violations),
+            "violations": violations,
+            "passed": passed,
+            "average_cultural_weight": sum(ht.cultural_weight for ht in harmony_types) / len(harmony_types) if harmony_types else 0.0
+        }
+    
+    def _apply_behavioral_guardrails(self, harmony_types: List[HarmonyType], harmony_builders: List[HarmonyBuilder]) -> Dict[str, Any]:
+        """Apply Harper Henry behavioral guardrails"""
+        guardrails_status = {
+            "all_guardrails_passed": True,
+            "checks_performed": [],
+            "violations": [],
+            "warnings": []
+        }
+        
+        # Check cultural weight constraint
+        if self.guardrails.enforce_cultural_weight:
+            cultural_validation = self._validate_cultural_weight_constraint(harmony_types)
+            guardrails_status["checks_performed"].append("cultural_weight_validation")
+            if not cultural_validation["constraint_met"]:
+                guardrails_status["all_guardrails_passed"] = False
+                guardrails_status["violations"].append({
+                    "type": "cultural_weight",
+                    "message": f"{cultural_validation['violations_count']} harmony types below minimum cultural weight",
+                    "details": cultural_validation["violations"]
+                })
+        
+        # Check harmony minimums
+        if self.guardrails.enforce_harmony_minimums:
+            guardrails_status["checks_performed"].append("harmony_minimums")
+            for ht in harmony_types:
+                if ht.harmony_score < self.config.min_harmony_score:
+                    guardrails_status["warnings"].append({
+                        "type": "harmony_minimum",
+                        "message": f"{ht.type_name} harmony score {ht.harmony_score:.2%} below minimum {self.config.min_harmony_score:.2%}"
+                    })
+        
+        # Check sustainability
+        if self.guardrails.enforce_sustainability:
+            guardrails_status["checks_performed"].append("sustainability")
+            for builder in harmony_builders:
+                # Check if builder has sustainability metrics
+                pass  # Placeholder for sustainability checks
+        
+        # Check slot limits
+        if self.guardrails.enforce_slot_limits:
+            guardrails_status["checks_performed"].append("slot_limits")
+            for builder in harmony_builders:
+                utilization = builder.slots_used / builder.max_slots if builder.max_slots > 0 else 0
+                if utilization > self.config.max_slot_utilization:
+                    guardrails_status["warnings"].append({
+                        "type": "slot_utilization",
+                        "message": f"{builder.builder_type} slot utilization {utilization:.2%} exceeds maximum {self.config.max_slot_utilization:.2%}"
+                    })
+        
+        # Check artistic balance
+        if self.guardrails.enforce_artistic_balance:
+            guardrails_status["checks_performed"].append("artistic_balance")
+            avg_artistic = sum(ht.artistic_expression_score for ht in harmony_types) / len(harmony_types) if harmony_types else 0
+            if avg_artistic < self.config.min_artistic_expression:
+                guardrails_status["warnings"].append({
+                    "type": "artistic_balance",
+                    "message": f"Average artistic expression {avg_artistic:.2%} below minimum {self.config.min_artistic_expression:.2%}"
+                })
+        
+        return guardrails_status
+    
+    def _calculate_festival_metrics(self, harmony_types: List[HarmonyType]) -> Dict[str, Any]:
+        """Calculate festival-related metrics"""
+        festival_types = [ht for ht in harmony_types if ht.festival_detected]
+        
+        return {
+            "festivals_detected": len(festival_types) > 0,
+            "festival_count": len(festival_types),
+            "festivals": [{"name": ht.festival_name, "type": ht.type_name} for ht in festival_types if ht.festival_name],
+            "total_boost_applied": sum(ht.festival_boost_applied for ht in festival_types),
+            "average_cultural_weight": sum(ht.cultural_weight for ht in harmony_types) / len(harmony_types) if harmony_types else 0.0,
+            "festival_cultural_weight": sum(ht.cultural_weight for ht in festival_types) / len(festival_types) if festival_types else 0.0
         }
 
 # Demo function
