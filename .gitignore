@@ -63,6 +63,12 @@ tmp/
 temp/
 *.tmp
 
+# Database files
+*.mmap
+*.duckdb
+*.duckdb.wal
+*.parquet
+
 # Clojure
 target/
 .cpcache/
