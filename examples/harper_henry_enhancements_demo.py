@@ -13,6 +13,7 @@ Showcasing new features:
 import asyncio
 import sys
 import os
+import tempfile
 from pathlib import Path
 from datetime import datetime
 
@@ -24,6 +25,9 @@ from core.harper_henry_harmony import (
     HarperHenryBehavioralGuardrails,
     HarperHenryHarmony
 )
+
+# Get temporary directory in a cross-platform way
+EXPORT_DIR = Path(tempfile.gettempdir()) / "harper_henry_exports"
 
 
 async def demo_basic_optimization():
@@ -194,17 +198,16 @@ async def demo_export_functionality():
     result = await engine.optimize_harmony_portfolio(portfolio_data)
     
     # Create output directory
-    output_dir = Path("/tmp/harper_henry_exports")
-    output_dir.mkdir(exist_ok=True)
+    EXPORT_DIR.mkdir(exist_ok=True)
     
     # Export to JSON
-    json_file = output_dir / f"harmony_result_{int(datetime.now().timestamp())}.json"
+    json_file = EXPORT_DIR / f"harmony_result_{int(datetime.now().timestamp())}.json"
     result.export_to_file(json_file, format="json")
     print(f"\n📄 Exported to JSON: {json_file}")
     print(f"   • File size: {json_file.stat().st_size} bytes")
     
     # Export to CSV
-    csv_file = output_dir / f"harmony_summary_{int(datetime.now().timestamp())}.csv"
+    csv_file = EXPORT_DIR / f"harmony_summary_{int(datetime.now().timestamp())}.csv"
     result.export_to_file(csv_file, format="csv")
     print(f"\n📊 Exported to CSV: {csv_file}")
     print(f"   • File size: {csv_file.stat().st_size} bytes")
@@ -354,9 +357,8 @@ async def demo_all_features():
         print(f"   {i}. {name}: {score:.1%}")
     
     # Export the result
-    output_dir = Path("/tmp/harper_henry_exports")
-    output_dir.mkdir(exist_ok=True)
-    result_file = output_dir / "diwali_harmony_complete.json"
+    EXPORT_DIR.mkdir(exist_ok=True)
+    result_file = EXPORT_DIR / "diwali_harmony_complete.json"
     result.export_to_file(result_file, format="json")
     print(f"\n💾 Exported complete results to: {result_file}")
 
@@ -378,7 +380,7 @@ async def main():
     print("\n" + "=" * 80)
     print("✅ All demos completed successfully!")
     print("=" * 80)
-    print("\n📁 Check /tmp/harper_henry_exports/ for exported files\n")
+    print(f"\n📁 Check {EXPORT_DIR} for exported files\n")
 
 
 if __name__ == "__main__":

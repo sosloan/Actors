@@ -13,7 +13,7 @@ import time
 import numpy as np
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Any, Union
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from enum import Enum
 import math
 from pathlib import Path
@@ -280,11 +280,11 @@ class HarperHenryHarmonyResult:
     big_builder_power_analysis: Dict[str, Any]
     created_at: datetime
     # Richer metrics
-    festival_metrics: Dict[str, Any] = None
-    cultural_weight_validation: Dict[str, Any] = None
-    guardrails_status: Dict[str, Any] = None
-    optimization_history: List[Dict[str, Any]] = None
-    export_metadata: Dict[str, Any] = None
+    festival_metrics: Dict[str, Any] = field(default_factory=dict)
+    cultural_weight_validation: Dict[str, Any] = field(default_factory=dict)
+    guardrails_status: Dict[str, Any] = field(default_factory=dict)
+    optimization_history: List[Dict[str, Any]] = field(default_factory=list)
+    export_metadata: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
         """Export result to dictionary format"""
@@ -304,7 +304,7 @@ class HarperHenryHarmonyResult:
                 # Handle dataclass-like objects
                 try:
                     return {k: convert_value(v) for k, v in asdict(obj).items()}
-                except:
+                except (TypeError, ValueError):
                     return str(obj)
             else:
                 return obj
@@ -2864,7 +2864,7 @@ class HarperHenryHarmony:
             try:
                 start_date = datetime.fromisoformat(portfolio_data["start_date"]) if isinstance(portfolio_data["start_date"], str) else portfolio_data["start_date"]
                 month = start_date.month
-            except:
+            except (ValueError, TypeError, AttributeError):
                 return False, None
         else:
             return False, None
