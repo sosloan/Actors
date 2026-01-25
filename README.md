@@ -111,6 +111,16 @@ The system deploys thousands of specialized agents across multiple dimensions:
 - 📈 **Expense Analysis**: Automated spending pattern analysis
 - 💸 **Cash Flow Optimization**: Income and expense optimization
 
+### **🇲🇽 Harper Henry Harmony – Mexico / Guadalajara Edition**
+- 🎭 **Cultural Harmony Optimization**: Portfolio optimization with Mexican cultural and economic harmony
+- 🚀 **Guadalajara Tech Hub Integration**: AI-driven analysis of tech startups in Mexico's Silicon Valley
+- 📊 **Mexican Market Assets**: Equities, bonds, real estate, and fintech specific to Mexican markets
+- 🎨 **Cultural Exchange Metrics**: Social sentiment, community engagement, and cultural impact indices
+- 🤖 **Async Sentiment Builders**: Real-time market sentiment from social, financial, and local media sources
+- 🔮 **Market Simulation Engine**: Multi-scenario analysis for Mexican macroeconomic trends
+- 🌱 **Sustainable Tech & Artisanal Industries**: Support for regional development and cultural preservation
+- 📈 **Jalisco Economic Indicators**: Regional GDP, industrial clusters, and startup growth metrics
+
 ### **📊 Advanced Analytics**
 - 🔍 **Market Microstructure Analysis**: Order flow and smart money detection
 - 💭 **Sentiment Analysis**: News, social media, and market sentiment processing
@@ -168,6 +178,7 @@ ACTORS/
 │   ├── 📄 ACTORS_INTEGRATION_SUMMARY.md
 │   ├── 📄 PRODUCTION_GRADE_PATTERNS_SUMMARY.md
 │   ├── 📄 ENHANCED_TIME_MANAGEMENT_FEATURES.md
+│   ├── 📄 HARPER_HENRY_HARMONY_MEXICO_GUADALAJARA.md
 │   └── 📄 ... (other documentation)
 ├── 📁 apis/                       # 🌐 API implementations
 │   ├── 🐍 unified_api_gateway.py
@@ -185,6 +196,7 @@ ACTORS/
 │   ├── 🐍 speech_to_trading_connector.py
 │   ├── 🐍 embedding_search.py
 │   ├── 🐍 harper_henry_harmony.py
+│   ├── 🐍 harper_henry_harmony_mexico.py
 │   ├── 🐍 homestay_portfolio_allocator.py
 │   ├── 🐍 homestay_portfolio_optimization_engine.py
 │   └── 🐍 free_class_definition.py
@@ -333,6 +345,20 @@ ACTORS/
    ```bash
    cd GOS/time
    go test -v
+   # Runs comprehensive test suite for time management components
+   ```
+
+8. **🇲🇽 Run the Harper Henry Harmony – Mexico / Guadalajara Edition**
+   ```bash
+   cd core
+   python harper_henry_harmony_mexico.py
+   # Demonstrates AI-driven portfolio optimization for Mexican markets
+   # with Guadalajara tech hub integration and cultural harmony metrics
+   ```
+
+9. **🧪 Test the Mexico / Guadalajara Edition**
+   ```bash
+   pytest tests/test_harper_henry_harmony_mexico.py -v
    # Runs comprehensive test suite for time management components
    ```
 
