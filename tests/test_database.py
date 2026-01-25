@@ -167,7 +167,7 @@ class TestL1RollbackBuffer:
         for i in range(10):
             snapshot_data = f"snapshot_{i}".encode()
             result = buffer.store_snapshot(i, snapshot_data)
-            assert result == True
+            assert result is True
         
         assert len(buffer.snapshots) == 10
         assert buffer.current_tick == 9
@@ -281,7 +281,7 @@ class TestL2AnalyticsStore:
             
             if store.conn:
                 result = store.create_match("match_001", {"map": "test_map"})
-                assert result == True
+                assert result is True
                 store.close()
         finally:
             if os.path.exists(temp_db):
@@ -309,7 +309,7 @@ class TestL2AnalyticsStore:
                     crc64_checksum="abc123"
                 )
                 
-                assert result == True
+                assert result is True
                 store.close()
         finally:
             if os.path.exists(temp_db):
@@ -383,17 +383,17 @@ class TestFPrimeComponent:
         
         # Initialize
         result = component.initialize()
-        assert result == True
+        assert result is True
         assert component.initialized == True
         
         # Start
         result = component.start()
-        assert result == True
+        assert result is True
         assert component.running == True
         
         # Stop
         result = component.stop()
-        assert result == True
+        assert result is True
         assert component.running == False
     
     def test_telemetry(self):
@@ -478,7 +478,7 @@ class TestIntegration:
         # L1: Store in rollback buffer
         rollback = RollbackBuffer(L1Config(compression_enabled=False))
         result = rollback.store_snapshot(tick_id, snapshot_data)
-        assert result == True
+        assert result is True
         
         # Verify rollback
         retrieved_data = rollback.get_snapshot(tick_id)
