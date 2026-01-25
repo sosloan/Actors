@@ -82,6 +82,7 @@ The system deploys thousands of specialized agents across multiple dimensions:
 - 🎤 **Speech-to-Trading API**: Voice-driven trading operations
 - 🔍 **Embedding API**: Semantic search and ML integration
 - 🦞 **Lobsters Bonvoyå API**: Travel and hospitality optimization
+- 🌍 **Geospatial API**: GDAL-powered location intelligence and spatial analytics
 
 ## 🚀 Key Features
 
@@ -116,7 +117,8 @@ The system deploys thousands of specialized agents across multiple dimensions:
 - 💭 **Sentiment Analysis**: News, social media, and market sentiment processing
 - 📈 **Technical Analysis**: 100+ indicators and pattern recognition
 - 🏢 **Fundamental Analysis**: Company and market fundamental evaluation
-- 🛰️ **Alternative Data**: Satellite, social, and alternative data sources
+- 🛰️ **Alternative Data**: Satellite imagery, geospatial analytics, and alternative data sources
+- 🌍 **Geospatial Intelligence**: GDAL-powered location-based analytics and spatial data processing
 - 📊 **Performance Attribution**: Return and risk factor analysis
 - ⏰ **Temporal Analytics**: Time-based performance optimization and scheduling insights
 - 🏥 **System Health Monitoring**: Real-time circuit breaker status and failure analysis
@@ -152,6 +154,7 @@ The system operates on the concept of **Jackie Robinson Resonance** - the idea t
 - ⚡ **Real-time Processing**: WebSocket connections and event streaming
 - 🧠 **Machine Learning**: ONNX models and embedding generation
 - 🗄️ **Database**: Multi-database architecture for different data types
+- 🌍 **Geospatial Processing**: GDAL-powered raster and vector data analysis
 - ☁️ **Cloud Deployment**: Scalable cloud infrastructure
 - 🔒 **Security**: End-to-end encryption and secure key management
 - 🏭 **Production-Grade Patterns**: Circuit Breaker, Event Sourcing, Distributed Tracing, Saga Pattern
@@ -176,6 +179,7 @@ ACTORS/
 │   ├── 🐍 speech_trading_api.py
 │   ├── 🐍 actors_embedding_api.py
 │   ├── 🐍 lobsters_bonvoya_api.py
+│   ├── 🐍 geospatial_api.py      # 🌍 Geospatial data API
 │   └── 📁 server/                 # 🟨 Node.js server
 ├── 📁 core/                       # ⚙️ Core system components
 │   ├── 🐍 advanced_time_manager.py
@@ -184,6 +188,7 @@ ACTORS/
 │   ├── 🐍 ml_pipeline_integration.py
 │   ├── 🐍 speech_to_trading_connector.py
 │   ├── 🐍 embedding_search.py
+│   ├── 🐍 geospatial_engine.py   # 🌍 Geospatial processing
 │   ├── 🐍 harper_henry_harmony.py
 │   ├── 🐍 homestay_portfolio_allocator.py
 │   ├── 🐍 homestay_portfolio_optimization_engine.py
