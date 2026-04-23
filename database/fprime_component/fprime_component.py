@@ -240,7 +240,7 @@ class FPrimeComponent:
             },
         })
         return metadata
-    
+
     def set_health(self, health: ComponentHealth):
         """Set component health status"""
         old_health = self.health
