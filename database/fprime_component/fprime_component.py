@@ -16,7 +16,7 @@ Reference: NASA's F´ Flight Software Framework
 """
 
 from enum import Enum
-from typing import Optional, Callable, Dict, Any, List
+from typing import Optional, Callable, Dict, Any, List, Tuple
 from dataclasses import dataclass
 import time
 
@@ -53,6 +53,54 @@ class Event:
     timestamp: float
     data: Dict[str, Any]
     severity: str = "INFO"
+
+
+@dataclass(frozen=True)
+class EsportsMetadata:
+    """Structured esports metadata for the F´ database component layer."""
+    domain: str
+    genre: str
+    subsystem: str
+    match_phase: str
+    responsibilities: Tuple[str, ...]
+    integration_points: Tuple[str, ...]
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert metadata to a serializable dictionary."""
+        return {
+            "domain": self.domain,
+            "genre": self.genre,
+            "subsystem": self.subsystem,
+            "match_phase": self.match_phase,
+            "responsibilities": list(self.responsibilities),
+            "integration_points": list(self.integration_points),
+        }
+
+
+ESPORTS_METADATA = EsportsMetadata(
+    domain="esports",
+    genre="real_time_strategy",
+    subsystem="deterministic_match_persistence",
+    match_phase="live_match_operations",
+    responsibilities=(
+        "snapshot storage for rollback and replay",
+        "player command synchronization",
+        "telemetry emission for observers and operators",
+        "component health monitoring for tournament reliability",
+    ),
+    integration_points=(
+        "snapshot_in",
+        "command_in",
+        "snapshot_out",
+        "telemetry_out",
+        "cmd_response",
+    ),
+)
+
+
+def get_esports_metadata() -> Dict[str, Any]:
+    """Return module-level esports metadata."""
+    return ESPORTS_METADATA.to_dict()
 
 
 class FPrimeComponent:
@@ -175,6 +223,23 @@ class FPrimeComponent:
     def get_health(self) -> ComponentHealth:
         """Get component health status"""
         return self.health
+
+    def get_esports_metadata(self) -> Dict[str, Any]:
+        """Get esports metadata enriched with component runtime details."""
+        metadata = get_esports_metadata()
+        metadata.update({
+            "component_id": self.component_id,
+            "component_name": self.component_name,
+            "health": self.health.value,
+            "ports": {
+                name: {
+                    "port_type": port.port_type.value,
+                    "data_type": port.data_type,
+                }
+                for name, port in self.ports.items()
+            },
+        })
+        return metadata
     
     def set_health(self, health: ComponentHealth):
         """Set component health status"""

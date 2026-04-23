@@ -6,7 +6,10 @@ from .fprime_component import (
     Port,
     PortType,
     ComponentHealth,
-    Event
+    Event,
+    EsportsMetadata,
+    ESPORTS_METADATA,
+    get_esports_metadata,
 )
 
 __all__ = [
@@ -15,5 +18,8 @@ __all__ = [
     "Port",
     "PortType",
     "ComponentHealth",
-    "Event"
+    "Event",
+    "EsportsMetadata",
+    "ESPORTS_METADATA",
+    "get_esports_metadata",
 ]
