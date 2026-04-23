@@ -13,7 +13,9 @@ Tests all four storage tiers:
 import pytest
 import sys
 import os
+import struct
 import tempfile
+import zlib
 from datetime import datetime, timedelta
 from pathlib import Path
 import numpy as np
@@ -514,6 +516,30 @@ class TestL0HotStateBuffer:
         assert buffer.get_attribute(0, "x") == 0.0
         assert buffer.tick_id == 0
         assert buffer.entity_count == 50
+
+    def test_snapshot_checksum_matches_serialized_payload(self):
+        """Test snapshots include a checksum for anti-cheat verification"""
+        buffer = HotStateBuffer(L0Config(use_mmap=False, enable_crc64=True))
+        buffer.add_entity(x=10.0, y=20.0, health=100.0)
+
+        _, snapshot_data = buffer.snapshot()
+
+        stored_checksum = struct.unpack('I', snapshot_data[:4])[0]
+        payload = snapshot_data[4:]
+
+        assert stored_checksum == zlib.crc32(payload) & 0xffffffff
+
+    def test_restore_rejects_corrupted_snapshot_checksum(self):
+        """Test corrupted snapshots fail checksum validation"""
+        buffer = HotStateBuffer(L0Config(use_mmap=False, enable_crc64=True))
+        buffer.add_entity(x=10.0, y=20.0, health=100.0)
+
+        _, snapshot_data = buffer.snapshot()
+        corrupted_snapshot = bytearray(snapshot_data)
+        corrupted_snapshot[-1] ^= 0x01
+
+        with pytest.raises(ValueError, match="snapshot corrupted"):
+            buffer.restore(bytes(corrupted_snapshot))
     
     def test_tick_advancement(self):
         """Test tick advancement"""
