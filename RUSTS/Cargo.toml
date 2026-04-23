@@ -25,3 +25,15 @@ tracing-subscriber = "0.3"
 tokio-test = "0.4"
 criterion = "0.5"
 
+[[bench]]
+name = "financial_engine"
+harness = false
+
+[[bench]]
+name = "ml_pipeline"
+harness = false
+
+[[bench]]
+name = "system_monitor"
+harness = false
+

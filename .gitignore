@@ -102,6 +102,8 @@ go.work
 # Logs
 logs/
 *.log
+# Never delete running log — always track this file
+!DATA/RUNNINGLOGS/NEVERDELETE.log
 
 # Runtime data
 pids/
