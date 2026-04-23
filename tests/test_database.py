@@ -423,6 +423,7 @@ from database import (
     L2Config,
     L3Config,
 )
+from database.fprime_component import ESPORTS_METADATA, get_esports_metadata
 
 
 class TestL0HotStateBuffer:
@@ -837,6 +838,27 @@ class TestFPrimeComponent:
         
         assert len(component.events) > 0
         assert component.events[-1].event_type == "TEST_EVENT"
+
+    def test_module_esports_metadata(self):
+        """Test module-level esports metadata export"""
+        metadata = get_esports_metadata()
+
+        assert metadata["domain"] == "esports"
+        assert metadata["genre"] == "real_time_strategy"
+        assert "snapshot_in" in metadata["integration_points"]
+        assert metadata == ESPORTS_METADATA.to_dict()
+
+    def test_component_esports_metadata(self):
+        """Test component esports metadata includes runtime details"""
+        component = DatabaseComponent("TEST_DB")
+
+        metadata = component.get_esports_metadata()
+
+        assert metadata["component_id"] == "TEST_DB"
+        assert metadata["component_name"] == "Database Component"
+        assert metadata["health"] == "healthy"
+        assert metadata["ports"]["snapshot_out"]["port_type"] == "output"
+        assert metadata["ports"]["telemetry_out"]["data_type"] == "TelemetryData"
 
 
 class TestDatabaseConfig:
