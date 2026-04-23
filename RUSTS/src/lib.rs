@@ -302,6 +302,140 @@ impl SystemMonitor {
     }
 }
 
+// ── StudyHall Economy Module ───────────────────────────────────────────────────
+//
+// Author: Steve Sloan (Prince Sloan)
+// Purpose: Rust translation of the Lean 4 StudyHall economy specification.
+//          Defines types and predicates for a sustainable "Learn-to-Earn" and
+//          "Play-to-Earn" educational economy.
+
+/// Funding origins that bring real value into the StudyHall system.
+///
+/// Mirrors: `inductive Source` in the Lean 4 specification.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum StudyHallSource {
+    /// Schools, universities, districts
+    Institution,
+    /// Corporations, NIL brands, partners
+    Sponsor,
+    /// Nonprofit or donor foundations
+    Philanthropy,
+    /// Subscriptions, tutoring, or app fees
+    UserRevenue,
+    /// Initial capital reserve (seed, DAO, investors)
+    TreasurySeed,
+}
+
+impl StudyHallSource {
+    /// All canonical source variants.
+    pub const ALL: [StudyHallSource; 5] = [
+        StudyHallSource::Institution,
+        StudyHallSource::Sponsor,
+        StudyHallSource::Philanthropy,
+        StudyHallSource::UserRevenue,
+        StudyHallSource::TreasurySeed,
+    ];
+}
+
+/// Reward distribution channels within the StudyHall economy.
+///
+/// Mirrors: `inductive Flow` in the Lean 4 specification.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum StudyHallFlow {
+    LearnToEarn,
+    PlayToEarn,
+    MentorReward,
+    Reserve,
+}
+
+impl StudyHallFlow {
+    /// All canonical flow variants.
+    pub const ALL: [StudyHallFlow; 4] = [
+        StudyHallFlow::LearnToEarn,
+        StudyHallFlow::PlayToEarn,
+        StudyHallFlow::MentorReward,
+        StudyHallFlow::Reserve,
+    ];
+}
+
+/// Returns `true` iff the given source represents real, fiat-backed value.
+///
+/// Mirrors: `def isRealValue (s : Source) : Prop` — every known variant is real.
+pub fn studyhall_is_real_value(source: StudyHallSource) -> bool {
+    matches!(
+        source,
+        StudyHallSource::Institution
+            | StudyHallSource::Sponsor
+            | StudyHallSource::Philanthropy
+            | StudyHallSource::UserRevenue
+            | StudyHallSource::TreasurySeed
+    )
+}
+
+/// Returns `true` iff `source` is a valid funding origin for `flow`.
+///
+/// Mirrors: `def funded (f : Flow) (s : Source) : Prop`.
+pub fn studyhall_funded(flow: StudyHallFlow, source: StudyHallSource) -> bool {
+    use StudyHallFlow::*;
+    use StudyHallSource::*;
+    match flow {
+        LearnToEarn => matches!(
+            source,
+            Institution | Sponsor | Philanthropy | UserRevenue | TreasurySeed
+        ),
+        PlayToEarn => matches!(source, Sponsor | UserRevenue | TreasurySeed),
+        MentorReward => matches!(source, Institution | UserRevenue),
+        Reserve => true, // Any source funds the reserve
+    }
+}
+
+/// Returns the first valid funding source for `flow`, or `None` if none exists.
+///
+/// Mirrors: the existential `∀ f, ∃ s, funded f s`.
+pub fn studyhall_find_funding_source(flow: StudyHallFlow) -> Option<StudyHallSource> {
+    StudyHallSource::ALL
+        .iter()
+        .copied()
+        .find(|&s| studyhall_funded(flow, s))
+}
+
+/// Returns `true` when the payout does **not** violate the no-self-minting axiom.
+///
+/// A violation occurs when `amount > 0` but `source` is `None` (self-generated).
+///
+/// Mirrors: `axiom no_self_minting : ∀ (t : Flow), ¬ (∃ v : Nat, v > 0 ∧ v originates_from t)`.
+pub fn studyhall_no_self_minting(
+    _flow: StudyHallFlow,
+    amount: u64,
+    source: Option<StudyHallSource>,
+) -> bool {
+    !(amount > 0 && source.is_none())
+}
+
+/// Returns `true` iff the StudyHall economy satisfies all three sustainability conditions:
+///
+/// 1. Every flow has at least one valid real funding source.
+/// 2. Every source is real-valued (fiat or tangible goods).
+/// 3. No flow can produce a positive payout without an external source.
+///
+/// Mirrors: `def SustainableSystem : Prop` and `theorem sustainability_truth`.
+pub fn studyhall_is_sustainable_system() -> bool {
+    let all_flows_funded = StudyHallFlow::ALL
+        .iter()
+        .all(|&f| studyhall_find_funding_source(f).is_some());
+
+    let all_sources_real = StudyHallSource::ALL
+        .iter()
+        .all(|&s| studyhall_is_real_value(s));
+
+    // No flow may self-mint: a positive amount without a source must be blocked.
+    let no_self_mint = StudyHallFlow::ALL
+        .iter()
+        .all(|&f| !studyhall_no_self_minting(f, 1, None));
+
+    all_flows_funded && all_sources_real && no_self_mint
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
