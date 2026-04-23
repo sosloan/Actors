@@ -226,7 +226,7 @@ class FPrimeComponent:
 
     def get_esports_metadata(self) -> Dict[str, Any]:
         """Get esports metadata enriched with component runtime details."""
-        metadata = get_esports_metadata()
+        metadata = get_esports_metadata().copy()
         metadata.update({
             "component_id": self.component_id,
             "component_name": self.component_name,
