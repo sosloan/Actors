@@ -306,11 +306,41 @@ impl SystemMonitor {
 mod tests {
     use super::*;
     use std::collections::HashMap;
-    
+
+    // ── helpers ────────────────────────────────────────────────────────────────
+
+    fn make_position(symbol: &str, market_value: f64, unrealized_pnl: f64) -> Position {
+        Position {
+            id: Uuid::new_v4(),
+            account_id: "test".to_string(),
+            symbol: symbol.to_string(),
+            instrument_type: InstrumentType::Stock,
+            quantity: 1.0,
+            average_price: market_value - unrealized_pnl,
+            current_price: market_value,
+            market_value,
+            unrealized_pnl,
+            last_updated: Utc::now(),
+        }
+    }
+
+    fn make_metrics(processing_time_ms: u64) -> PerformanceMetrics {
+        PerformanceMetrics {
+            processing_time_ms,
+            memory_usage_mb: 50.0,
+            cpu_usage_percent: 25.0,
+            throughput_ops_per_sec: 1000.0,
+            error_rate: 0.01,
+            timestamp: Utc::now(),
+        }
+    }
+
+    // ── FinancialEngine: original tests ────────────────────────────────────────
+
     #[test]
     fn test_financial_engine_calculations() {
         let engine = FinancialEngine::new(0.02);
-        
+
         let positions = vec![
             Position {
                 id: Uuid::new_v4(),
@@ -337,62 +367,201 @@ mod tests {
                 last_updated: Utc::now(),
             },
         ];
-        
+
         let total_value = engine.calculate_portfolio_value(&positions);
         assert_eq!(total_value, 25500.0);
-        
+
         let total_pnl = engine.calculate_portfolio_pnl(&positions);
         assert_eq!(total_pnl, 500.0);
-        
+
         let weight = engine.calculate_position_weight(&positions[0], total_value);
         assert!((weight - 0.6078).abs() < 0.001);
     }
-    
+
     #[test]
     fn test_volatility_calculation() {
         let engine = FinancialEngine::new(0.02);
         let returns = vec![0.01, -0.02, 0.03, -0.01, 0.02];
-        
+
         let volatility = engine.calculate_volatility(&returns);
         assert!(volatility > 0.0);
     }
-    
+
     #[test]
     fn test_var_calculation() {
         let engine = FinancialEngine::new(0.02);
         let returns = vec![0.01, -0.02, 0.03, -0.01, 0.02, -0.05, 0.01];
-        
+
         let var_95 = engine.calculate_var(&returns, 0.95);
         assert!(var_95 > 0.0);
-        
+
         let var_99 = engine.calculate_var(&returns, 0.99);
         assert!(var_99 >= var_95);
     }
-    
+
+    // ── FinancialEngine: expanded tests ────────────────────────────────────────
+
+    #[test]
+    fn test_zero_portfolio_value() {
+        let engine = FinancialEngine::new(0.02);
+        assert_eq!(engine.calculate_portfolio_value(&[]), 0.0);
+        assert_eq!(engine.calculate_portfolio_pnl(&[]), 0.0);
+    }
+
+    #[test]
+    fn test_single_position_weight() {
+        let engine = FinancialEngine::new(0.02);
+        let pos = make_position("SPY", 10000.0, 0.0);
+        let total = engine.calculate_portfolio_value(&[pos.clone()]);
+        let weight = engine.calculate_position_weight(&pos, total);
+        assert!((weight - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_zero_total_value_weight() {
+        let engine = FinancialEngine::new(0.02);
+        let pos = make_position("SPY", 0.0, 0.0);
+        // total_value == 0.0 must return 0.0 without panicking
+        assert_eq!(engine.calculate_position_weight(&pos, 0.0), 0.0);
+    }
+
+    #[test]
+    fn test_sharpe_ratio_zero_volatility() {
+        let engine = FinancialEngine::new(0.02);
+        // volatility == 0.0 must return 0.0 without panicking
+        assert_eq!(engine.calculate_sharpe_ratio(&[0.05, 0.05], 0.0), 0.0);
+    }
+
+    #[test]
+    fn test_sharpe_ratio_positive() {
+        let engine = FinancialEngine::new(0.02); // risk-free 2%
+        // avg return of 10% >> risk-free rate → positive Sharpe
+        let returns = vec![0.10; 252];
+        let sharpe = engine.calculate_sharpe_ratio(&returns, 0.05);
+        assert!(sharpe > 0.0);
+    }
+
+    #[test]
+    fn test_var_empty_returns() {
+        let engine = FinancialEngine::new(0.02);
+        assert_eq!(engine.calculate_var(&[], 0.95), 0.0);
+        assert_eq!(engine.calculate_var(&[], 0.99), 0.0);
+    }
+
+    #[test]
+    fn test_var_95_vs_99_ordering() {
+        let engine = FinancialEngine::new(0.02);
+        // Large sample with variety of losses
+        let returns: Vec<f64> = (0..1000)
+            .map(|i| if i % 10 == 0 { -0.1 } else { 0.01 })
+            .collect();
+        let var_95 = engine.calculate_var(&returns, 0.95);
+        let var_99 = engine.calculate_var(&returns, 0.99);
+        assert!(var_99 >= var_95, "VaR(99%) must be >= VaR(95%)");
+    }
+
+    #[test]
+    fn test_volatility_single_element() {
+        let engine = FinancialEngine::new(0.02);
+        // Less than 2 elements → not enough data, returns 0.0
+        assert_eq!(engine.calculate_volatility(&[0.05]), 0.0);
+        assert_eq!(engine.calculate_volatility(&[]), 0.0);
+    }
+
+    #[test]
+    fn test_volatility_identical_returns() {
+        let engine = FinancialEngine::new(0.02);
+        // All returns equal → variance is effectively zero (within floating-point precision)
+        let returns = vec![0.05; 100];
+        assert!(
+            engine.calculate_volatility(&returns) < 1e-12,
+            "volatility of identical returns must be effectively zero",
+        );
+    }
+
+    // ── MLPipeline: original test ──────────────────────────────────────────────
+
     #[test]
     fn test_ml_pipeline_processing() {
         let features = vec!["price".to_string(), "volume".to_string(), "volatility".to_string()];
         let pipeline = MLPipeline::new("v1.0".to_string(), features);
-        
+
         let mut data = Vec::new();
         let mut record = HashMap::new();
         record.insert("price".to_string(), 100.0);
         record.insert("volume".to_string(), 1000.0);
         record.insert("volatility".to_string(), 0.2);
         data.push(record);
-        
+
         let processed = pipeline.process_training_data(&data).unwrap();
         assert_eq!(processed.len(), 1);
         assert_eq!(processed[0].len(), 3);
-        
+
         let prediction = pipeline.predict(&processed[0]).unwrap();
         assert!(prediction > 0.0);
     }
-    
+
+    // ── MLPipeline: expanded tests ─────────────────────────────────────────────
+
+    #[test]
+    fn test_process_empty_data() {
+        let pipeline = MLPipeline::new("v1.0".to_string(), vec!["price".to_string()]);
+        assert!(pipeline.process_training_data(&[]).is_err());
+    }
+
+    #[test]
+    fn test_process_missing_feature() {
+        let pipeline = MLPipeline::new(
+            "v1.0".to_string(),
+            vec!["price".to_string(), "missing_feature".to_string()],
+        );
+        let mut record = HashMap::new();
+        record.insert("price".to_string(), 100.0);
+        // "missing_feature" is absent → must return Err
+        let result = pipeline.process_training_data(&[record]);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Missing feature"));
+    }
+
+    #[test]
+    fn test_predict_feature_count_mismatch() {
+        let pipeline = MLPipeline::new(
+            "v1.0".to_string(),
+            vec!["price".to_string(), "volume".to_string()],
+        );
+        // Pipeline expects 2 features but we supply 3
+        let result = pipeline.predict(&[1.0, 2.0, 3.0]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_feature_importance_ordering() {
+        let features = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+        let pipeline = MLPipeline::new("v1.0".to_string(), features);
+        let importance = pipeline.get_feature_importance();
+        // Importance for index 0 ("a") is 1/1 = 1.0, for "b" 1/2 = 0.5, "c" 1/3
+        assert!(importance["a"] > importance["b"]);
+        assert!(importance["b"] > importance["c"]);
+    }
+
+    #[test]
+    fn test_predict_returns_mean() {
+        // Pipeline prediction is the arithmetic mean of input features
+        let pipeline = MLPipeline::new(
+            "v1.0".to_string(),
+            vec!["x".to_string(), "y".to_string(), "z".to_string()],
+        );
+        // mean of [3.0, 6.0, 9.0] = 6.0
+        let result = pipeline.predict(&[3.0, 6.0, 9.0]).unwrap();
+        assert!((result - 6.0).abs() < 1e-10);
+    }
+
+    // ── SystemMonitor: original test ───────────────────────────────────────────
+
     #[test]
     fn test_system_monitor() {
         let mut monitor = SystemMonitor::new(10);
-        
+
         let metrics = PerformanceMetrics {
             processing_time_ms: 100,
             memory_usage_mb: 50.0,
@@ -401,13 +570,61 @@ mod tests {
             error_rate: 0.01,
             timestamp: Utc::now(),
         };
-        
+
         monitor.record_metrics(metrics);
-        
+
         let latest = monitor.get_latest_metrics().unwrap();
         assert_eq!(latest.processing_time_ms, 100);
-        
+
         let average = monitor.get_average_metrics().unwrap();
         assert_eq!(average.processing_time_ms, 100);
+    }
+
+    // ── SystemMonitor: expanded tests ──────────────────────────────────────────
+
+    #[test]
+    fn test_empty_monitor() {
+        let monitor = SystemMonitor::new(10);
+        assert!(monitor.get_average_metrics().is_none());
+    }
+
+    #[test]
+    fn test_empty_latest_metrics() {
+        let monitor = SystemMonitor::new(10);
+        assert!(monitor.get_latest_metrics().is_none());
+    }
+
+    #[test]
+    fn test_max_history_eviction() {
+        let cap = 5_usize;
+        let mut monitor = SystemMonitor::new(cap);
+
+        // Insert cap+1 entries; the oldest (processing_time_ms = 1) should be evicted
+        for i in 1..=(cap + 1) as u64 {
+            monitor.record_metrics(make_metrics(i));
+        }
+
+        // History must not exceed the cap
+        let avg = monitor.get_average_metrics().unwrap();
+        // Entries in history: 2, 3, 4, 5, 6  → avg = (2+3+4+5+6)/5 = 4
+        assert_eq!(avg.processing_time_ms, 4);
+
+        // The latest entry should be the last one inserted
+        let latest = monitor.get_latest_metrics().unwrap();
+        assert_eq!(latest.processing_time_ms, (cap + 1) as u64);
+    }
+
+    #[test]
+    fn test_average_multiple_metrics() {
+        let mut monitor = SystemMonitor::new(100);
+
+        // Insert entries with processing_time_ms 10, 20, 30
+        for &t in &[10_u64, 20, 30] {
+            monitor.record_metrics(make_metrics(t));
+        }
+
+        let avg = monitor.get_average_metrics().unwrap();
+        // (10 + 20 + 30) / 3 = 20
+        assert_eq!(avg.processing_time_ms, 20);
     }
 }
