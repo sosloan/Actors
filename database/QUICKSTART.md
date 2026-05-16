@@ -9,7 +9,7 @@ pip install numpy lz4 duckdb redis
 
 ### Windows PowerShell Setup
 
-From `/home/runner/work/Actors/Actors` in PowerShell:
+From the repository root in PowerShell:
 
 ```powershell
 .\scripts\setup_database_windows.ps1

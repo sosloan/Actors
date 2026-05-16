@@ -64,7 +64,7 @@ pip install pyarrow  # For Parquet support
 
 ### Windows PowerShell
 
-From `/home/runner/work/Actors/Actors`:
+From the repository root:
 
 ```powershell
 .\scripts\setup_database_windows.ps1
