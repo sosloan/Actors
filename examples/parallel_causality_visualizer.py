@@ -75,6 +75,9 @@ def parallel_causality_scores(
 
 def summarize(scores: Dict[str, float]) -> str:
     """Format summary for CLI output."""
+    if not scores:
+        return "Processed regions: 0\nMean causality score: 0.0000\nTop regions:"
+
     top = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:5]
     values = list(scores.values())
     lines = [
