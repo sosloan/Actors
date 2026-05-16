@@ -11,7 +11,8 @@ import tempfile
 from typing import Dict, Any
 
 
-RTS_TEMP_DIR = Path(tempfile.gettempdir())
+RTS_TEMP_DIR = Path(tempfile.gettempdir()) / "rts_database"
+RTS_TEMP_DIR.mkdir(parents=True, exist_ok=True)
 L0_MMAP_PATH = str(RTS_TEMP_DIR / "rts_hot_state.mmap")
 L2_DUCKDB_PATH = str(RTS_TEMP_DIR / "rts_analytics.duckdb")
 L2_EXPORT_PATH = str(RTS_TEMP_DIR / "rts_exports")

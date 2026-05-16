@@ -94,7 +94,7 @@ Performance indexes are created on frequently queried columns:
 
 1. **Install the database-only dependencies**:
    ```bash
-   pip install -r database/requirements-windows.txt
+   pip install -r database/requirements-database.txt
    ```
 
 2. **Initialize the database**:
@@ -130,7 +130,7 @@ With optional Parquet support:
 Manual PowerShell steps:
 
 ```powershell
-py -m pip install -r .\database\requirements-windows.txt
+py -m pip install -r .\database\requirements-database.txt
 py .\scripts\init_database.py --sample-data
 py .\scripts\demo_database.py
 py -m pytest .\tests\test_database.py -v

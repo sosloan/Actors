@@ -30,7 +30,7 @@ Install optional Parquet support:
 If you prefer to run the steps manually in PowerShell:
 
 ```powershell
-py -m pip install -r .\database\requirements-windows.txt
+py -m pip install -r .\database\requirements-database.txt
 py .\scripts\init_database.py --sample-data
 py .\scripts\demo_database.py
 py -m pytest .\tests\test_database.py -v

@@ -45,7 +45,7 @@ if (-not (Test-PythonCommand -CommandName $PythonCommand)) {
 $script:PythonCommand = $PythonCommand
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-$RequirementsPath = Join-Path $RepoRoot "database\requirements-windows.txt"
+$RequirementsPath = Join-Path $RepoRoot "database\requirements-database.txt"
 $InitScript = Join-Path $RepoRoot "scripts\init_database.py"
 $DemoScript = Join-Path $RepoRoot "scripts\demo_database.py"
 $TestPath = Join-Path $RepoRoot "tests\test_database.py"
