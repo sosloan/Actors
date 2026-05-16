@@ -51,7 +51,7 @@ def compute_region_metric(region: RegionTelemetry) -> Tuple[str, float]:
     loops = max(1_000, region.witness_load // 2)
     accumulator = 0.0
 
-    for i in range(1, loops):
+    for i in range(1, loops + 1):
         harmonic = math.sin(i * 0.0007) + math.cos(i * 0.0011)
         load_factor = math.sqrt(region.witness_load / (i + 1))
         accumulator += abs(harmonic) * load_factor
@@ -110,10 +110,29 @@ def plot_scores(scores: Dict[str, float]) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--regions", type=int, default=18)
-    parser.add_argument("--workers", type=int, default=4)
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--plot", action="store_true")
+    parser.add_argument(
+        "--regions",
+        type=int,
+        default=18,
+        help="Number of synthetic telemetry regions to simulate.",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=4,
+        help="Number of process workers for parallel scoring.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed used for deterministic telemetry generation.",
+    )
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        help="Render a matplotlib bar chart of region scores.",
+    )
     return parser.parse_args()
 
 

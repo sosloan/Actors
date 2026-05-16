@@ -108,6 +108,7 @@
       let oscillators = [];
       let running = false;
       let t0 = 0;
+      const labelFont = "14px Inter, system-ui, sans-serif";
 
       function startAudio() {
         if (running) return;
@@ -191,13 +192,13 @@
           ctx.shadowBlur = 0;
 
           ctx.fillStyle = "#e2e8f0";
-          ctx.font = "12px Inter, system-ui, sans-serif";
+          ctx.font = labelFont;
           ctx.fillText(node.id, node.x - 24, node.y - r - 8);
         });
 
         const avgEnergy = nodes.reduce((sum, n) => sum + n.e, 0) / nodes.length;
         ctx.fillStyle = "#93c5fd";
-        ctx.font = "14px Inter, system-ui, sans-serif";
+        ctx.font = labelFont;
         ctx.fillText(`Telemetry energy: ${avgEnergy.toFixed(2)}`, 20, 30);
       }
 
