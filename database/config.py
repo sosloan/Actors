@@ -11,12 +11,12 @@ import tempfile
 from typing import Dict, Any
 
 
-TEMP_DIR = Path(tempfile.gettempdir())
-L0_MMAP_PATH = str(TEMP_DIR / "rts_hot_state.mmap")
-L2_DUCKDB_PATH = str(TEMP_DIR / "rts_analytics.duckdb")
-L2_EXPORT_PATH = str(TEMP_DIR / "rts_exports")
-GEOSPATIAL_CACHE_PATH = str(TEMP_DIR / "geospatial_cache")
-GEOSPATIAL_EXPORT_PATH = str(TEMP_DIR / "geospatial_exports")
+RTS_TEMP_DIR = Path(tempfile.gettempdir())
+L0_MMAP_PATH = str(RTS_TEMP_DIR / "rts_hot_state.mmap")
+L2_DUCKDB_PATH = str(RTS_TEMP_DIR / "rts_analytics.duckdb")
+L2_EXPORT_PATH = str(RTS_TEMP_DIR / "rts_exports")
+GEOSPATIAL_CACHE_PATH = str(RTS_TEMP_DIR / "geospatial_cache")
+GEOSPATIAL_EXPORT_PATH = str(RTS_TEMP_DIR / "geospatial_exports")
 
 
 @dataclass

@@ -56,7 +56,7 @@ def add_sample_trading_data(db):
     
     # Sample symbols
     symbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN']
-    sample_run_id = datetime.now().strftime("%Y%m%d%H%M%S%f")
+    order_id_prefix = datetime.now().strftime("%Y%m%d%H%M%S%f")
     
     # Add market data
     logger.info("Adding sample market data...")
@@ -101,7 +101,7 @@ def add_sample_trading_data(db):
     
     for i in range(20):
         trade = {
-            'order_id': f'order_{sample_run_id}_{i+1:04d}',
+            'order_id': f'order_{order_id_prefix}_{i+1:04d}',
             'portfolio_id': portfolio_id,
             'symbol': random.choice(symbols),
             'side': random.choice(['buy', 'sell']),
