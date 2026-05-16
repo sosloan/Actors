@@ -45,6 +45,20 @@ This directory contains modern, production-ready React components for the ACTORS
 - **Theme switching** (dark/light mode)
 - **Breadcrumb navigation** and component routing
 
+### **🔊 Native Audio + Parallelism Examples**
+
+#### **audio_causality_visualizer.html**
+- **Browser-native Web Audio API** synthesis with no C++ dependencies
+- **Audio-reactive causality graph** rendered with Canvas
+- **Telemetry-driven modulation** for node energy and tone dynamics
+- **Simple launch**: open the HTML file directly in a browser
+
+#### **parallel_causality_visualizer.py**
+- **Python native parallelism** via `concurrent.futures.ProcessPoolExecutor`
+- **Region-level causality score calculation** for CPU-heavy workloads
+- **Optional matplotlib charting** for quick visual analysis
+- **CLI controls** for regions, worker count, seed, and plotting
+
 ## 🎨 Design Features
 
 ### **Visual Design**
@@ -165,6 +179,12 @@ npm run format
 
 # Type checking
 npm run type-check
+
+# Run Python parallel causality demo
+python parallel_causality_visualizer.py --regions 24 --workers 6
+
+# Run with chart output (requires matplotlib)
+python parallel_causality_visualizer.py --plot
 ```
 
 ## 🎨 Customization
