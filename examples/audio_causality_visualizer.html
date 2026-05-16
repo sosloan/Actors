@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACTORS Web Audio Causality Visualizer</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, sans-serif;
+        background: #0b1020;
+        color: #e5e7eb;
+      }
+      .layout {
+        max-width: 980px;
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      h1 {
+        margin-bottom: 8px;
+      }
+      p {
+        color: #9ca3af;
+      }
+      .panel {
+        display: flex;
+        gap: 12px;
+        margin: 16px 0;
+        flex-wrap: wrap;
+      }
+      button {
+        border: 1px solid #334155;
+        background: #111827;
+        color: #e5e7eb;
+        padding: 10px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #1f2937;
+      }
+      #status {
+        font-size: 14px;
+        color: #93c5fd;
+        display: flex;
+        align-items: center;
+      }
+      canvas {
+        width: 100%;
+        height: 520px;
+        background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+        border: 1px solid #1e293b;
+        border-radius: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <h1>ACTORS Audio-Reactive Causality Visualizer</h1>
+      <p>
+        Web Audio API + Canvas demo using browser-native tooling (no JUCE/TBB).
+      </p>
+
+      <div class="panel">
+        <button id="start">Start Audio + Graph</button>
+        <button id="stop">Stop</button>
+        <div id="status">idle</div>
+      </div>
+
+      <canvas id="graph" width="960" height="520"></canvas>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("graph");
+      const ctx = canvas.getContext("2d");
+      const statusEl = document.getElementById("status");
+      const startBtn = document.getElementById("start");
+      const stopBtn = document.getElementById("stop");
+
+      const nodes = [
+        { id: "SPEED", x: 160, y: 100, f: 220, color: "#38bdf8", e: 0.2 },
+        { id: "LOYALTY", x: 360, y: 80, f: 246, color: "#a78bfa", e: 0.3 },
+        { id: "PASSION", x: 560, y: 120, f: 261, color: "#f472b6", e: 0.5 },
+        { id: "SACRED", x: 760, y: 160, f: 293, color: "#34d399", e: 0.4 },
+        { id: "COURAGE", x: 700, y: 340, f: 329, color: "#f97316", e: 0.25 },
+        { id: "WISDOM", x: 480, y: 420, f: 349, color: "#eab308", e: 0.2 },
+        { id: "LOVE", x: 250, y: 380, f: 392, color: "#fb7185", e: 0.3 },
+      ];
+
+      const edges = [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 4],
+        [4, 5],
+        [5, 6],
+        [6, 0],
+        [0, 2],
+        [2, 5],
+        [1, 4],
+      ];
+
+      let audioCtx = null;
+      let masterGain = null;
+      let oscillators = [];
+      let running = false;
+      let t0 = 0;
+      const labelFont = "14px Inter, system-ui, sans-serif";
+      const ENERGY_FREQ_SCALE = 40;
+      const BASE_GAIN = 0.01;
+      const ENERGY_GAIN_SCALE = 0.07;
+
+      function startAudio() {
+        if (running) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.08;
+        masterGain.connect(audioCtx.destination);
+        t0 = audioCtx.currentTime;
+
+        oscillators = nodes.map((node, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = idx % 2 === 0 ? "sine" : "triangle";
+          osc.frequency.value = node.f;
+          gain.gain.value = 0.001;
+          osc.connect(gain);
+          gain.connect(masterGain);
+          osc.start();
+          return { osc, gain };
+        });
+
+        running = true;
+        statusEl.textContent = "running";
+        requestAnimationFrame(animate);
+      }
+
+      function stopAudio() {
+        if (!running) return;
+        running = false;
+        oscillators.forEach(({ osc }) => osc.stop());
+        oscillators = [];
+        if (audioCtx) {
+          audioCtx.close();
+          audioCtx = null;
+        }
+        statusEl.textContent = "stopped";
+        draw(0);
+      }
+
+      function updateTelemetryEnergy(timeSec) {
+        nodes.forEach((node, i) => {
+          const wave = Math.sin(timeSec * (0.8 + i * 0.07) + i * 0.4);
+          const pulse = Math.max(0, Math.sin(timeSec * 2.8 + i));
+          node.e = 0.12 + 0.4 * ((wave + 1) / 2) + 0.4 * pulse;
+          node.e = Math.min(1, node.e);
+        });
+      }
+
+      function updateAudio(timeSec) {
+        nodes.forEach((node, i) => {
+          const { osc, gain } = oscillators[i];
+          const vibrato = Math.sin(timeSec * 5 + i) * 3.5;
+          osc.frequency.setValueAtTime(
+            node.f + vibrato + node.e * ENERGY_FREQ_SCALE,
+            audioCtx.currentTime
+          );
+          gain.gain.setValueAtTime(
+            BASE_GAIN + node.e * ENERGY_GAIN_SCALE,
+            audioCtx.currentTime
+          );
+        });
+      }
+
+      function draw(timeSec) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        edges.forEach(([a, b]) => {
+          const na = nodes[a];
+          const nb = nodes[b];
+          const edgeEnergy = (na.e + nb.e) / 2;
+          ctx.strokeStyle = `rgba(96, 165, 250, ${0.1 + edgeEnergy * 0.55})`;
+          ctx.lineWidth = 1 + edgeEnergy * 4;
+          ctx.beginPath();
+          ctx.moveTo(na.x, na.y);
+          ctx.lineTo(nb.x, nb.y);
+          ctx.stroke();
+        });
+
+        nodes.forEach((node) => {
+          const r = 18 + node.e * 24;
+          ctx.beginPath();
+          ctx.fillStyle = node.color;
+          ctx.shadowColor = node.color;
+          ctx.shadowBlur = 16;
+          ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          ctx.fillStyle = "#e2e8f0";
+          ctx.font = labelFont;
+          ctx.fillText(node.id, node.x - 24, node.y - r - 8);
+        });
+
+        const avgEnergy = nodes.reduce((sum, n) => sum + n.e, 0) / nodes.length;
+        ctx.fillStyle = "#93c5fd";
+        ctx.font = labelFont;
+        ctx.fillText(`Telemetry energy: ${avgEnergy.toFixed(2)}`, 20, 30);
+      }
+
+      function animate() {
+        if (!running || !audioCtx) return;
+        const timeSec = audioCtx.currentTime - t0;
+        updateTelemetryEnergy(timeSec);
+        updateAudio(timeSec);
+        draw(timeSec);
+        requestAnimationFrame(animate);
+      }
+
+      startBtn.addEventListener("click", startAudio);
+      stopBtn.addEventListener("click", stopAudio);
+      draw(0);
+    </script>
+  </body>
+</html>
