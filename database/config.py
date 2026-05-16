@@ -5,8 +5,18 @@ Defines latency targets, buffer sizes, and storage parameters
 for the multi-tier database system.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from pathlib import Path
+import tempfile
 from typing import Dict, Any
+
+
+TEMP_DIR = Path(tempfile.gettempdir())
+L0_MMAP_PATH = str(TEMP_DIR / "rts_hot_state.mmap")
+L2_DUCKDB_PATH = str(TEMP_DIR / "rts_analytics.duckdb")
+L2_EXPORT_PATH = str(TEMP_DIR / "rts_exports")
+GEOSPATIAL_CACHE_PATH = str(TEMP_DIR / "geospatial_cache")
+GEOSPATIAL_EXPORT_PATH = str(TEMP_DIR / "geospatial_exports")
 
 
 @dataclass
@@ -15,7 +25,7 @@ class L0Config:
     max_entities: int = 10000
     chunk_size: int = 1024  # For SIMD operations
     use_mmap: bool = True
-    mmap_file_path: str = "/tmp/rts_hot_state.mmap"
+    mmap_file_path: str = L0_MMAP_PATH
     enable_crc64: bool = True
 
 
@@ -31,8 +41,8 @@ class L1Config:
 @dataclass
 class L2Config:
     """Analytics Store Configuration (< 10ms latency)"""
-    duckdb_path: str = "/tmp/rts_analytics.duckdb"
-    parquet_export_path: str = "/tmp/rts_exports"
+    duckdb_path: str = L2_DUCKDB_PATH
+    parquet_export_path: str = L2_EXPORT_PATH
     batch_size: int = 1000
     enable_compression: bool = True
     compression_type: str = "snappy"
@@ -52,11 +62,11 @@ class L3Config:
 @dataclass
 class GeospatialConfig:
     """Geospatial Data Configuration"""
-    cache_dir: str = "/tmp/geospatial_cache"
+    cache_dir: str = GEOSPATIAL_CACHE_PATH
     max_raster_size_mb: int = 500
     enable_caching: bool = True
     default_projection: str = "EPSG:4326"  # WGS84
-    parquet_export_path: str = "/tmp/geospatial_exports"
+    parquet_export_path: str = GEOSPATIAL_EXPORT_PATH
     enable_compression: bool = True
     tile_size: int = 256  # For raster tiling
 
@@ -64,11 +74,11 @@ class GeospatialConfig:
 @dataclass
 class DatabaseConfig:
     """Complete Database Configuration"""
-    l0: L0Config
-    l1: L1Config
-    l2: L2Config
-    l3: L3Config
-    geospatial: GeospatialConfig
+    l0: L0Config = field(default_factory=L0Config)
+    l1: L1Config = field(default_factory=L1Config)
+    l2: L2Config = field(default_factory=L2Config)
+    l3: L3Config = field(default_factory=L3Config)
+    geospatial: GeospatialConfig = field(default_factory=GeospatialConfig)
     
     @classmethod
     def default(cls) -> "DatabaseConfig":

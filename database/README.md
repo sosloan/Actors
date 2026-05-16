@@ -62,6 +62,20 @@ pip install numpy lz4 duckdb redis
 pip install pyarrow  # For Parquet support
 ```
 
+### Windows PowerShell
+
+From `/home/runner/work/Actors/Actors`:
+
+```powershell
+.\scripts\setup_database_windows.ps1
+```
+
+With sample data and optional Parquet support:
+
+```powershell
+.\scripts\setup_database_windows.ps1 -SampleData -InstallPyArrow
+```
+
 ### Basic Usage
 
 ```python

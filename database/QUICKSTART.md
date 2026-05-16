@@ -7,6 +7,35 @@
 pip install numpy lz4 duckdb redis
 ```
 
+### Windows PowerShell Setup
+
+From `/home/runner/work/Actors/Actors` in PowerShell:
+
+```powershell
+.\scripts\setup_database_windows.ps1
+```
+
+Add sample data during initialization:
+
+```powershell
+.\scripts\setup_database_windows.ps1 -SampleData
+```
+
+Install optional Parquet support:
+
+```powershell
+.\scripts\setup_database_windows.ps1 -InstallPyArrow
+```
+
+If you prefer to run the steps manually in PowerShell:
+
+```powershell
+py -m pip install -r .\database\requirements-windows.txt
+py .\scripts\init_database.py --sample-data
+py .\scripts\demo_database.py
+py -m pytest .\tests\test_database.py -v
+```
+
 ### Basic Usage (L0 + L1)
 ```python
 from database import HotStateBuffer, RollbackBuffer, DatabaseConfig

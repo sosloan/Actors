@@ -92,9 +92,9 @@ Performance indexes are created on frequently queried columns:
 
 ## Installation
 
-1. **Install DuckDB** (already included in requirements.txt):
+1. **Install the database-only dependencies**:
    ```bash
-   pip install duckdb==1.1.3
+   pip install -r database/requirements-windows.txt
    ```
 
 2. **Initialize the database**:
@@ -106,6 +106,35 @@ Performance indexes are created on frequently queried columns:
    ```bash
    python scripts/init_database.py --sample-data
    ```
+
+### Windows PowerShell
+
+From `/home/runner/work/Actors/Actors`:
+
+```powershell
+.\scripts\setup_database_windows.ps1
+```
+
+With sample data:
+
+```powershell
+.\scripts\setup_database_windows.ps1 -SampleData
+```
+
+With optional Parquet support:
+
+```powershell
+.\scripts\setup_database_windows.ps1 -InstallPyArrow
+```
+
+Manual PowerShell steps:
+
+```powershell
+py -m pip install -r .\database\requirements-windows.txt
+py .\scripts\init_database.py --sample-data
+py .\scripts\demo_database.py
+py -m pytest .\tests\test_database.py -v
+```
 
 ## Usage
 
@@ -227,7 +256,7 @@ Test coverage includes:
 
 ## File Locations
 
-- **Database File**: `/home/runner/work/Actors/Actors/data/actors.duckdb`
+- **Database File**: `data/actors.duckdb`
 - **Configuration**: `core/database_config.py`
 - **Manager**: `core/database_manager.py`
 - **Initialization**: `scripts/init_database.py`
@@ -281,6 +310,7 @@ For issues or questions:
 - Run the demo script to see features in action
 - Review the database manager source code for API details
 - Consult DuckDB documentation: https://duckdb.org/docs/
+- For full-project installs on Windows, expect extra setup for geospatial packages as noted in `docs/GEOSPATIAL_INTEGRATION_GUIDE.md`
 
 ## License
 
