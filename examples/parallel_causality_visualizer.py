@@ -109,7 +109,9 @@ def plot_scores(scores: Dict[str, float]) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Parallel causality processing demo for ACTORS using Python-native concurrency."
+    )
     parser.add_argument(
         "--regions",
         type=int,
