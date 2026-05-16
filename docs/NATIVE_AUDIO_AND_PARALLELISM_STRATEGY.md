@@ -5,22 +5,22 @@ This repository should prioritize native capabilities in the existing stack inst
 ## Audio Visualization
 
 - Use browser-native **Web Audio API** and Canvas in the frontend layer.
-- See: `/home/runner/work/Actors/Actors/examples/audio_causality_visualizer.html`
+- See: `examples/audio_causality_visualizer.html`
 
 ## Python Parallelism
 
 - Use `concurrent.futures`, `multiprocessing`, or Ray (if distributed scale is needed).
-- See: `/home/runner/work/Actors/Actors/examples/parallel_causality_visualizer.py`
+- See: `examples/parallel_causality_visualizer.py`
 
 ## Go Parallelism
 
 - Continue using goroutines + channels for agent message processing.
-- Existing patterns: `/home/runner/work/Actors/Actors/GOS/time/`
+- Existing patterns: `GOS/time/`
 
 ## Rust Parallelism
 
 - Prefer Tokio async for concurrent pipeline tasks and introduce Rayon only when benchmarks justify data-parallel execution.
-- Existing async coordination example: `/home/runner/work/Actors/Actors/RUSTS/ml_pipeline.rs`
+- Existing async coordination example: `RUSTS/ml_pipeline.rs`
 
 ## C++/FFI Escalation Rule
 
