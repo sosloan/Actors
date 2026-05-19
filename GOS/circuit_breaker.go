@@ -289,8 +289,9 @@ func isRetryableError(err error, retryableErrors []error) bool {
 
 // addJitter adds random jitter to a duration to avoid thundering herd
 func addJitter(duration time.Duration) time.Duration {
-	// Add ±25% jitter
-	jitter := time.Duration(float64(duration) * 0.25 * float64(2*time.Now().UnixNano()%2-1))
+	// Add ±25% jitter based on the nanosecond parity of the current time
+	sign := float64(time.Now().UnixNano()%2*2 - 1)
+	jitter := time.Duration(float64(duration) * 0.25 * sign)
 	return duration + jitter
 }
 
