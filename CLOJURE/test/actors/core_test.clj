@@ -39,7 +39,7 @@
     (let [agent (create-agent :trading "AAPL")]
       (is (= :idle (:status agent)))
       (let [updated-agent (update-agent-status agent :active)]
-        (is (= :active (:status updated-agent))))))
+        (is (= :active (:status updated-agent)))))))
 
 (deftest test-data-processing
   (testing "Data transformation"
@@ -119,73 +119,3 @@
       (is (contains? result :processed-data))
       (is (contains? result :agent-results))
       (is (= 2 (count (:agent-results result)))))))
-
-;; Helper functions for testing
-(defn calculate-portfolio-value [positions]
-  (reduce + (map #(* (:quantity %) (:price %)) positions)))
-
-(defn calculate-pnl [position]
-  (* (:quantity position) (- (:current-price position) (:avg-price position))))
-
-(defn calculate-position-weight [position total-value]
-  (/ (:market-value position) total-value))
-
-(defn create-agent [type symbol]
-  {:id (str (java.util.UUID/randomUUID))
-   :type type
-   :symbol symbol
-   :status :idle
-   :created-at (java.time.Instant/now)})
-
-(defn update-agent-status [agent new-status]
-  (assoc agent :status new-status))
-
-(defn extract-prices [data]
-  (map :price data))
-
-(defn extract-volumes [data]
-  (map :volume data))
-
-(defn moving-average [prices window]
-  (let [sum (reduce + (take window prices))
-        count (min window (count prices))]
-    (/ sum count)))
-
-(defn calculate-volatility [returns]
-  (let [mean (/ (reduce + returns) (count returns))
-        variance (/ (reduce + (map #(Math/pow (- % mean) 2) returns)) (count returns))]
-    (Math/sqrt variance)))
-
-(defn add-position [state position]
-  (-> state
-      (update :positions assoc (:symbol position) position)
-      (update :cash - (* (:quantity position) (:price position)))))
-
-(defn process-data-async [data]
-  (future (reduce + data)))
-
-(defn process-in-parallel [data f]
-  (pmap f data))
-
-(defn safe-divide [a b]
-  (if (zero? b) 0 (/ a b)))
-
-(defn valid-price? [price]
-  (and (number? price) (pos? price)))
-
-(defn with-error-handling [f]
-  (try
-    {:status :success :result (f)}
-    (catch Exception e
-      {:status :error :message (.getMessage e)})))
-
-(defn process-large-dataset [data]
-  (map inc data))
-
-(defn get-memory-usage []
-  (let [runtime (Runtime/getRuntime)]
-    (- (.totalMemory runtime) (.freeMemory runtime))))
-
-(defn run-workflow [market-data agents]
-  {:processed-data (map #(assoc % :processed true) market-data)
-   :agent-results (map #(assoc % :result "processed") agents)})

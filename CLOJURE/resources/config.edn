@@ -68,7 +68,7 @@
  :performance {:gc-optimization true
                :memory-monitoring true
                :profiling {:enabled false
-                           :sample-rate 0.01}}}
+                           :sample-rate 0.01}}
 
  :development {:hot-reload true
                :debug-mode true
