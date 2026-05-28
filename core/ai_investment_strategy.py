@@ -237,10 +237,37 @@ class AIPortfolioOptimizer:
     All methods operate on annualised inputs and return normalised weights.
     Optimisation is done analytically or via projected-gradient descent so
     no external solver is required.
+
+    Parameters
+    ----------
+    risk_free_rate : float
+        Annualised risk-free rate used in Sharpe/Sortino calculations.
+    kelly_fraction : float
+        Scales the full Kelly allocation (0.5 = half-Kelly).  Half-Kelly is
+        the empirically recommended default: it roughly halves drawdowns while
+        retaining ~75% of full-Kelly long-run growth (Thorp 2006).
+    downside_vol_ratio : float
+        Fraction of total volatility used as a proxy for downside deviation
+        when only aggregate portfolio vol is available.  0.70 is a conservative
+        heuristic derived from empirical studies showing that downside deviation
+        typically runs 65–75% of total standard deviation for diversified
+        equity portfolios (Sortino & Satchell, 2001).
+    max_drawdown_vol_multiplier : float
+        Multiplier applied to annualised vol to estimate expected max drawdown
+        (rule-of-thumb: E[MDD] ≈ 2–3× annual vol for long equity portfolios).
     """
 
-    def __init__(self, risk_free_rate: float = 0.04):
+    def __init__(
+        self,
+        risk_free_rate: float = 0.04,
+        kelly_fraction: float = 0.5,
+        downside_vol_ratio: float = 0.70,
+        max_drawdown_vol_multiplier: float = 2.5,
+    ):
         self.risk_free_rate = risk_free_rate
+        self.kelly_fraction = kelly_fraction
+        self.downside_vol_ratio = downside_vol_ratio
+        self.max_drawdown_vol_multiplier = max_drawdown_vol_multiplier
         self._math = FinancialMath()
 
     # ── Public API ──────────────────────────────────────────────────────────
@@ -281,8 +308,8 @@ class AIPortfolioOptimizer:
         port_vol = math.sqrt(max(port_variance, 0.0))
         sharpe = (port_return - self.risk_free_rate) / port_vol if port_vol > 0 else 0.0
 
-        # Approximate sortino using vol * 0.7 as downside vol heuristic
-        downside_vol = port_vol * 0.70
+        # Approximate sortino using downside_vol_ratio × total vol (see class docstring)
+        downside_vol = port_vol * self.downside_vol_ratio
         sortino = (port_return - self.risk_free_rate) / downside_vol if downside_vol > 0 else 0.0
 
         vols = np.sqrt(np.diag(covariance_matrix))
@@ -297,7 +324,8 @@ class AIPortfolioOptimizer:
             expected_volatility=port_vol,
             sharpe_ratio=sharpe,
             sortino_ratio=sortino,
-            max_drawdown_estimate=-port_vol * 2.5,  # rough rule-of-thumb
+            # Rule-of-thumb: E[MDD] ≈ max_drawdown_vol_multiplier × annual vol
+            max_drawdown_estimate=-port_vol * self.max_drawdown_vol_multiplier,
             diversification_ratio=div_ratio,
             convergence_iterations=iters,
             optimization_time_ms=elapsed_ms,
@@ -397,7 +425,11 @@ class AIPortfolioOptimizer:
     def _kelly_portfolio(
         self, mu: np.ndarray, cov: np.ndarray, c: OptimizationConstraints
     ) -> Tuple[np.ndarray, int]:
-        """Full Kelly portfolio: w* = Σ⁻¹(μ − rf·1), then rescale."""
+        """Full Kelly portfolio: w* = Σ⁻¹(μ − rf·1), then rescale.
+
+        The result is scaled by `self.kelly_fraction` (default 0.5 = half-Kelly)
+        to reduce drawdowns at the cost of a small reduction in long-run growth.
+        """
         try:
             cov_inv = np.linalg.inv(cov + np.eye(len(mu)) * 1e-8)
             excess = mu - self.risk_free_rate
@@ -407,10 +439,8 @@ class AIPortfolioOptimizer:
             if total <= 0:
                 w = np.ones(len(mu)) / len(mu)
             else:
-                # Apply fractional Kelly (50%) for safety
-                w = w / total * 0.5
+                w = w / total * self.kelly_fraction
                 remainder = 1.0 - w.sum()
-                # Allocate remainder as cash proxy (spread equally)
                 w += remainder / len(mu)
             w = self._project_constraints(w, c)
             return w, 1
@@ -853,10 +883,15 @@ class InvestmentStrategyAgent:
     def __init__(
         self,
         risk_free_rate: float = 0.04,
+        kelly_fraction: float = 0.5,
+        downside_vol_ratio: float = 0.70,
+        max_drawdown_vol_multiplier: float = 2.5,
         drift_threshold: float = 0.05,
         transaction_cost_bps: float = 5.0,
     ):
-        self.optimizer = AIPortfolioOptimizer(risk_free_rate)
+        self.optimizer = AIPortfolioOptimizer(
+            risk_free_rate, kelly_fraction, downside_vol_ratio, max_drawdown_vol_multiplier
+        )
         self.signal_generator = StrategySignalGenerator()
         self.executor = StrategyExecutor()
         self.rebalancer = PortfolioRebalancer(drift_threshold)

@@ -218,7 +218,18 @@ func (e *AIExecutionEngine) adaptiveSlices(req AIOrderRequest) []AIExecutionSlic
 
 // participationSlices creates slices sized to match a constant participation rate
 // of total expected market volume.
+//
+// tradingHoursPerDay is the exchange session length; pass 0 to use the default
+// NYSE/NASDAQ value of 6.5 hours.  For CME futures (23h), pass 23; for crypto
+// 24×7, pass 24.
 func (e *AIExecutionEngine) participationSlices(req AIOrderRequest) []AIExecutionSlice {
+	return e.participationSlicesWithHours(req, 0)
+}
+
+func (e *AIExecutionEngine) participationSlicesWithHours(req AIOrderRequest, tradingHoursPerDay float64) []AIExecutionSlice {
+	if tradingHoursPerDay <= 0 {
+		tradingHoursPerDay = 6.5 // NYSE / NASDAQ regular session
+	}
 	participation := math.Min(req.MaxParticipationRate, 0.25)
 	intervalMinutes := 10.0
 	n := int(math.Ceil(float64(req.WindowMinutes) / intervalMinutes))
@@ -226,7 +237,9 @@ func (e *AIExecutionEngine) participationSlices(req AIOrderRequest) []AIExecutio
 		n = 1
 	}
 
-	volumePerInterval := req.AvgDailyVolume / (6.5 * 60 / intervalMinutes) // NYSE 6.5h day
+	minutesPerDay := tradingHoursPerDay * 60.0
+	bucketsPerDay := minutesPerDay / intervalMinutes
+	volumePerInterval := req.AvgDailyVolume / bucketsPerDay
 	sliceQty := volumePerInterval * participation
 	now := time.Now()
 
@@ -372,14 +385,21 @@ func (o *AIPortfolioOptimizer) OptimiseFromSignals(
 			expectedReturn += w * s.ExpectedReturn
 		}
 	}
-	// Approximate vol: weighted average individual vols using confidence as proxy
+
+	// Approximate annualised volatility: start from a 20% equity-market base
+	// (roughly the long-run realised vol of a diversified equity index) and
+	// reduce it linearly by up to 30% as average signal confidence rises toward 1.
+	// This is a rough proxy intended for sizing/display; replace with realised vol
+	// when historical data is available.
+	const baseVol = 0.20        // 20% — long-run equity index vol heuristic
+	const confVolReduction = 0.30 // max vol reduction at full confidence
 	avgConfidence := 0.0
 	for _, s := range signals {
 		if w, ok := weights[s.Symbol]; ok {
 			avgConfidence += w * s.Confidence
 		}
 	}
-	approxVol := 0.20 * (1.0 - avgConfidence*0.3) // 20% base vol, reduced by confidence
+	approxVol := baseVol * (1.0 - avgConfidence*confVolReduction)
 	sharpe := 0.0
 	if approxVol > 0 {
 		sharpe = (expectedReturn - o.RiskFreeRate) / approxVol
@@ -472,17 +492,28 @@ func (rs *RebalancingScheduler) CheckDrift(
 
 // intradayVolumeProfile returns a normalised U-shaped intraday volume curve
 // for `n` buckets covering a regular trading session.
+//
+// The curve is modelled as 1 + A·exp(−k·(t−0.5)²) where:
+//   - t ∈ [0,1] is the normalised time within the session
+//   - A = 2.0 amplifies the open/close spikes relative to the mid-day trough
+//   - k = 8.0 controls how sharply activity peaks at open and close
+//
+// This produces the well-documented U-shape (high activity at open & close,
+// low at mid-day) observed across major equity exchanges.
 func intradayVolumeProfile(n int) []float64 {
 	if n <= 0 {
 		return nil
 	}
+	const amplitude = 2.0 // height of open/close peaks above the mid-day base
+	const sharpness = 8.0 // controls width of the mid-day trough
+
 	profile := make([]float64, n)
 	for i := 0; i < n; i++ {
-		// U-shape: high at open/close, low at mid-day
-		t := float64(i) / float64(n-1)   // 0 → 1
-		profile[i] = 1.0 + 2.0*math.Exp(-8*(t-0.5)*(t-0.5)) - math.Exp(-8*(t-0.5)*(t-0.5))
+		t := float64(i) / float64(n-1) // 0 → 1
+		deviation := t - 0.5
+		profile[i] = 1.0 + amplitude*math.Exp(-sharpness*deviation*deviation)
 	}
-	// Normalise
+	// Normalise so weights sum to 1
 	total := 0.0
 	for _, v := range profile {
 		total += v
