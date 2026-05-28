@@ -4,6 +4,8 @@
 //! This module provides optimized implementations for financial calculations,
 //! data processing, and ML pipeline components.
 
+pub mod backtest;
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
