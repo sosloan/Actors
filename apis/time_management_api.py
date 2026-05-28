@@ -18,6 +18,7 @@ from advanced_time_manager import (
     AdvancedTimeManager, TimeEvent, TimeEventType, TimeZone, 
     ScheduleFrequency, TimeExecution, TimeAnalytics
 )
+from api_database import get_api_store
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -105,7 +106,17 @@ async def create_event():
         
         # Create event
         event = await time_manager.create_event(data)
-        
+
+        get_api_store().store_time_event(
+            event_id=event.id,
+            event_type=event.event_type.value,
+            title=event.name,
+            scheduled_time=event.scheduled_time,
+            timezone=event.timezone.value,
+            status="scheduled",
+            metadata={"priority": event.priority, "is_recurring": event.is_recurring},
+        )
+
         return jsonify({
             'message': 'Event created successfully',
             'event': {
@@ -632,6 +643,18 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/api/events/db/history', methods=['GET'])
+def db_event_history():
+    """Retrieve time event history from the database"""
+    try:
+        event_type = request.args.get('event_type')
+        limit = request.args.get('limit', 50, type=int)
+        records = get_api_store().get_time_events(event_type=event_type, limit=limit)
+        return jsonify({'count': len(records), 'records': records})
+    except Exception as e:
+        logger.error(f"❌ DB event history error: {e}")
+        return jsonify({'error': 'Failed to retrieve event history'}), 500
 
 # ============================================================================
 # ASYNC ROUTE HANDLERS

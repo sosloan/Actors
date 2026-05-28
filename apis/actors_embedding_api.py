@@ -5,6 +5,7 @@ RESTful API for semantic search and embedding operations with ML integration
 """
 
 import json
+import uuid
 import numpy as np
 from typing import List, Dict, Optional
 from flask import Flask, request, jsonify
@@ -15,6 +16,7 @@ import logging
 import asyncio
 from embedding_search import EmbeddingSearchEngine
 from ml_pipeline_integration import MLPipelineManager
+from api_database import get_api_store
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -104,7 +106,18 @@ def search_embeddings():
                 'similarity': result['similarity'],
                 'filename': Path(metadata['path']).name
             })
-        
+
+        top = formatted_results[0] if formatted_results else {}
+        get_api_store().store_embedding_search(
+            search_id=str(uuid.uuid4()),
+            query_text=query,
+            top_k=top_k,
+            result_count=len(formatted_results),
+            top_result_id=top.get('id'),
+            top_similarity=top.get('similarity'),
+            search_time_ms=round(search_time * 1000, 2),
+        )
+
         return jsonify({
             'query': query,
             'results': formatted_results,
@@ -441,6 +454,17 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/search/history', methods=['GET'])
+def search_history():
+    """Retrieve past embedding search queries from the database"""
+    try:
+        limit = request.args.get('limit', 50, type=int)
+        records = get_api_store().get_search_history(limit=limit)
+        return jsonify({'count': len(records), 'records': records})
+    except Exception as e:
+        logger.error(f"❌ Search history error: {e}")
+        return jsonify({'error': 'Failed to retrieve search history'}), 500
 
 # Async route handler wrapper
 def async_route(f):

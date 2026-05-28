@@ -9,6 +9,7 @@ import hashlib
 import functools
 import json
 import time
+import uuid
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from flask import Flask, request, jsonify
@@ -21,6 +22,7 @@ from speech_to_trading_connector import (
     FinancialEntity, SentimentAnalysis, TradingSignalType, AudioSource
 )
 from ml_pipeline_integration import MLEnhancedSpeechToTradingSystem
+from api_database import get_api_store
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -267,7 +269,23 @@ async def process_audio():
         
         # Format results
         formatted_signals = [_format_signal(s) for s in signals]
-        
+
+        # Persist each signal to the database
+        db = get_api_store()
+        for raw, fmt in zip(signals, formatted_signals):
+            tickers = getattr(raw, 'tickers', None) or []
+            db.store_trading_signal(
+                signal_id=str(uuid.uuid4()),
+                signal_type=raw.signal_type.value if hasattr(raw.signal_type, 'value') else str(raw.signal_type),
+                ticker=tickers[0] if tickers else None,
+                confidence=getattr(raw, 'confidence', None),
+                risk_level=getattr(raw, 'risk_level', None),
+                price_target=getattr(raw, 'price_target', None),
+                source_text=audio_text[:500],
+                audio_source=audio_source,
+                metadata={"urgency": fmt.get("urgency"), "confidence_tier": fmt.get("confidence_tier")},
+            )
+
         return jsonify({
             'audio_text': audio_text,
             'source': audio_source,
@@ -637,6 +655,18 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/api/signals/db/history', methods=['GET'])
+def db_signal_history():
+    """Retrieve trading signal history from the database"""
+    try:
+        ticker = request.args.get('ticker')
+        limit = request.args.get('limit', 50, type=int)
+        records = get_api_store().get_trading_signals(ticker=ticker, limit=limit)
+        return jsonify({'count': len(records), 'records': records})
+    except Exception as e:
+        logger.error(f"❌ DB signal history error: {e}")
+        return jsonify({'error': 'Failed to retrieve signal history'}), 500
 
 # ============================================================================
 # ASYNC ROUTE HANDLERS
