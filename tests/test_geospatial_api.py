@@ -212,9 +212,9 @@ def reset_engine():
 
 _FAKE_RASTER = "/tmp/fake_raster.tif"
 _FAKE_VECTOR = "/tmp/fake_vector.geojson"
-_FAKE_DEM    = "/tmp/fake_dem.tif"
-_FAKE_RED    = "/tmp/fake_red.tif"
-_FAKE_NIR    = "/tmp/fake_nir.tif"
+_FAKE_DEM = "/tmp/fake_dem.tif"
+_FAKE_RED = "/tmp/fake_red.tif"
+_FAKE_NIR = "/tmp/fake_nir.tif"
 
 
 def _post(client, url, body):
