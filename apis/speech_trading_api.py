@@ -5,6 +5,7 @@ RESTful API for audio-driven trading signal generation
 """
 
 import asyncio
+import functools
 import json
 import time
 from datetime import datetime, timedelta
@@ -132,7 +133,10 @@ async def process_audio():
         
         if not audio_text:
             return jsonify({'error': 'Audio text is required'}), 400
-        
+
+        if duration is not None and duration <= 0:
+            return jsonify({'error': 'Duration must be a positive number'}), 400
+
         # Validate audio source
         try:
             source = AudioSource(audio_source)
@@ -176,6 +180,14 @@ async def process_audio():
         logger.error(f"❌ Audio processing error: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/signals/sources', methods=['GET'])
+def get_signal_sources():
+    """Get all available audio source types"""
+    return jsonify({
+        'sources': [s.value for s in AudioSource],
+        'total': len(AudioSource)
+    })
+
 @app.route('/api/signals', methods=['GET'])
 def get_trading_signals():
     """Get recent trading signals"""
@@ -189,11 +201,11 @@ def get_trading_signals():
         
         # Get signals based on filters
         if symbol:
-            signals = speech_connector.get_signals_by_symbol(symbol)
+            signals = speech_connector.get_signals_by_symbol(symbol)[:limit]
         elif source:
             try:
                 source_enum = AudioSource(source)
-                signals = speech_connector.get_signals_by_source(source_enum)
+                signals = speech_connector.get_signals_by_source(source_enum)[:limit]
             except ValueError:
                 return jsonify({'error': f'Invalid source: {source}'}), 400
         else:
@@ -243,7 +255,10 @@ async def process_audio_with_ml():
         
         if not audio_text:
             return jsonify({'error': 'Audio text is required'}), 400
-        
+
+        if duration is not None and duration <= 0:
+            return jsonify({'error': 'Duration must be a positive number'}), 400
+
         logger.info(f"🤖 Processing audio with ML from {audio_source}: '{audio_text[:50]}...'")
         
         # Create audio data
@@ -381,11 +396,16 @@ def get_analytics_overview():
                     source = signal.source.value
                     sources[source] = sources.get(source, 0) + 1
                 
+                avg_confidence = (
+                    sum(s.confidence for s in recent_signals) / len(recent_signals)
+                    if recent_signals else 0.0
+                )
                 analytics['systems']['speech_trading'] = {
                     'total_signals': len(speech_connector.trading_signals),
                     'recent_signals': len(recent_signals),
                     'signal_types': signal_types,
                     'sources': sources,
+                    'average_confidence': round(avg_confidence, 4),
                     'status': 'healthy'
                 }
             except Exception as e:
@@ -401,11 +421,16 @@ def get_analytics_overview():
                 enhanced_signals = ml_speech_system.get_enhanced_signals(limit=100)
                 high_priority = ml_speech_system.get_signals_by_priority(min_priority=7)
                 
+                ml_avg_confidence = (
+                    sum(s.enhanced_confidence for s in enhanced_signals) / len(enhanced_signals)
+                    if enhanced_signals else 0.0
+                )
                 analytics['systems']['ml_enhanced'] = {
                     'total_enhanced_signals': ml_status.get('total_enhanced_signals', 0),
                     'high_priority_signals': len(high_priority),
                     'ml_pipeline_active': ml_status.get('ml_pipeline_health', {}).get('is_active', False),
                     'recent_enhanced_signals': len(enhanced_signals),
+                    'average_confidence': round(ml_avg_confidence, 4),
                     'status': 'healthy'
                 }
             except Exception as e:
@@ -434,10 +459,14 @@ def get_performance_metrics():
             try:
                 total_signals = len(speech_connector.trading_signals)
                 recent_signals = speech_connector.get_recent_signals(limit=10)
-                
+                avg_confidence = (
+                    sum(s.confidence for s in recent_signals) / len(recent_signals)
+                    if recent_signals else 0.0
+                )
                 metrics['performance']['speech_trading'] = {
                     'total_signals_processed': total_signals,
                     'recent_signals': len(recent_signals),
+                    'average_confidence': round(avg_confidence, 4),
                     'status': 'healthy'
                 }
             except Exception as e:
@@ -610,6 +639,7 @@ def internal_error(error):
 
 def async_route(f):
     """Wrapper for async routes"""
+    @functools.wraps(f)
     def wrapper(*args, **kwargs):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -617,7 +647,6 @@ def async_route(f):
             return loop.run_until_complete(f(*args, **kwargs))
         finally:
             loop.close()
-    wrapper.__name__ = f.__name__  # Preserve function name
     return wrapper
 
 # Apply async wrapper to async routes
