@@ -462,7 +462,8 @@ def query_history():
         limit = request.args.get('limit', 50, type=int)
         records = get_api_store().get_geospatial_history(query_type=query_type, limit=limit)
         return jsonify({"count": len(records), "records": records}), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"Query history error: {e}")
         return jsonify({"error": "Failed to retrieve query history"}), 500
 
 

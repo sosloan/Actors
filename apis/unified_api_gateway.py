@@ -944,6 +944,8 @@ def db_status():
         counts = {}
         if connected:
             for table in _allowed_tables:
+                if table not in _allowed_tables:
+                    continue
                 try:
                     row = db.conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
                     counts[table] = row[0] if row else 0
