@@ -60,6 +60,13 @@ def initialize_systems():
 # SIGNAL FORMATTERS
 # ============================================================================
 
+_CONFIDENCE_MULTIPLIER = 6
+_MIN_URGENCY = 1
+_MAX_URGENCY = 10
+_RISK_WEIGHT = {'high': 4, 'medium': 2, 'low': 1}
+_RISK_LEVEL_EXPIRY_MINUTES = {'high': 5, 'medium': 30, 'low': 120}
+
+
 def _format_signal(signal) -> Dict[str, Any]:
     """Format a TradingSignal with enhanced fields"""
     confidence = signal.confidence
@@ -73,8 +80,8 @@ def _format_signal(signal) -> Dict[str, Any]:
     else:
         confidence_tier = "low"
 
-    risk_weight = {'high': 4, 'medium': 2, 'low': 1}.get(risk_level, 1)
-    urgency_score = min(10, max(1, int(confidence * 6 + risk_weight)))
+    risk_weight = _RISK_WEIGHT.get(risk_level, 1)
+    urgency_score = min(_MAX_URGENCY, max(_MIN_URGENCY, int(confidence * _CONFIDENCE_MULTIPLIER + risk_weight)))
 
     if signal_type == 'buy':
         recommended_action = "Strong Buy" if confidence >= 0.75 else "Buy"
@@ -85,11 +92,11 @@ def _format_signal(signal) -> Dict[str, Any]:
     else:
         recommended_action = "Hold"
 
-    expiry_minutes = {'high': 5, 'medium': 30, 'low': 120}.get(risk_level, 30)
+    expiry_minutes = _RISK_LEVEL_EXPIRY_MINUTES.get(risk_level, 30)
     expires_at = (signal.timestamp + timedelta(minutes=expiry_minutes)).isoformat()
 
     raw = f"{signal.symbol}:{signal_type}:{signal.timestamp.isoformat()}"
-    signal_id = hashlib.md5(raw.encode()).hexdigest()[:12]
+    signal_id = hashlib.sha256(raw.encode()).hexdigest()[:12]
 
     return {
         'signal_id': signal_id,
