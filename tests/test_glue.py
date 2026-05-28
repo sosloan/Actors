@@ -423,7 +423,7 @@ class TestHealthAggregator:
         reg = self._reg_with("svc", _BrokenService())
         sr = HealthAggregator(reg).probe_service("svc")
         assert sr.status == ServiceStatus.UNHEALTHY
-        assert "health_error" in sr.details or "get_health_error" in sr.details or sr.details
+        assert any(k.endswith("_error") for k in sr.details)
 
     def test_unknown_without_health_interface(self):
         reg = self._reg_with("svc", _NoHealthService())
