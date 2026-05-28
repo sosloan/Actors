@@ -21,6 +21,7 @@ from lobsters_bonvoya import (
     AccommodationType, 
     TravelPurpose
 )
+from api_database import get_api_store
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -98,7 +99,22 @@ async def create_travel_plan():
             departure_location=departure_location,
             financial_profile=financial_profile
         )
-        
+
+        # Persist the plan to the database
+        import uuid as _uuid
+        destinations = result.get('recommended_destinations', [])
+        first_dest = destinations[0].get('name') if destinations else None
+        get_api_store().store_travel_plan(
+            plan_id=str(_uuid.uuid4()),
+            origin=departure_location,
+            destination=first_dest,
+            travel_class=preferences.travel_class.value,
+            purpose=preferences.purpose.value,
+            estimated_cost=result.get('estimated_total_cost'),
+            optimization_score=result.get('optimization_score'),
+            plan_data=result,
+        )
+
         return jsonify(result)
         
     except Exception as e:
@@ -414,6 +430,18 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/api/travel/db/history', methods=['GET'])
+def db_travel_history():
+    """Retrieve travel plan history from the database"""
+    try:
+        destination = request.args.get('destination')
+        limit = request.args.get('limit', 50, type=int)
+        records = get_api_store().get_travel_plans(destination=destination, limit=limit)
+        return jsonify({'count': len(records), 'records': records})
+    except Exception as e:
+        logger.error(f"❌ DB travel history error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # Async route handler wrapper
 def async_route(f):

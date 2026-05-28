@@ -21,6 +21,7 @@ from speech_to_trading_connector import SpeechToTradingConnector, AudioSource
 from advanced_time_manager import AdvancedTimeManager
 from geospatial_engine import GeospatialEngine, GDAL_AVAILABLE
 from database.config import GeospatialConfig
+from api_database import get_api_store
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,7 +40,14 @@ geospatial_engine = None
 def initialize_systems():
     """Initialize all ACTORS systems"""
     global search_engine, ml_speech_system, speech_connector, time_manager, geospatial_engine
-    
+
+    # Ensure the database is initialised early so all APIs share the same store
+    try:
+        get_api_store()
+        logger.info("✅ API database store initialised")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialise API database store: {e}")
+
     success_count = 0
     total_systems = 5
     
@@ -922,6 +930,52 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/api/db/status', methods=['GET'])
+def db_status():
+    """Return database connectivity status and recent activity counts"""
+    try:
+        db = get_api_store()
+        connected = db.conn is not None
+        counts = {}
+        if connected:
+            for table in ('api_requests', 'geospatial_queries', 'embedding_searches',
+                          'time_events', 'trading_signals', 'travel_plans'):
+                try:
+                    row = db.conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
+                    counts[table] = row[0] if row else 0
+                except Exception:
+                    counts[table] = None
+        return jsonify({
+            'database_connected': connected,
+            'record_counts': counts,
+        })
+    except Exception as e:
+        logger.error(f"❌ DB status error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/db/signals', methods=['GET'])
+def db_signals():
+    """Query stored trading signals from the database"""
+    try:
+        ticker = request.args.get('ticker')
+        limit = request.args.get('limit', 50, type=int)
+        records = get_api_store().get_trading_signals(ticker=ticker, limit=limit)
+        return jsonify({'count': len(records), 'records': records})
+    except Exception as e:
+        logger.error(f"❌ DB signals error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/db/searches', methods=['GET'])
+def db_searches():
+    """Query stored embedding search history from the database"""
+    try:
+        limit = request.args.get('limit', 50, type=int)
+        records = get_api_store().get_search_history(limit=limit)
+        return jsonify({'count': len(records), 'records': records})
+    except Exception as e:
+        logger.error(f"❌ DB searches error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # ============================================================================
 # ASYNC ROUTE HANDLERS

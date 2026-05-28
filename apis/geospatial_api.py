@@ -26,6 +26,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from core.geospatial_engine import GeospatialEngine, GDAL_AVAILABLE
 from database.config import GeospatialConfig
+from api_database import get_api_store
 
 app = Flask(__name__)
 CORS(app)
@@ -82,7 +83,16 @@ def load_raster():
             "data_shape": result["data"].shape,
             "cached": cache_key is not None
         }
-        
+
+        import uuid
+        get_api_store().store_geospatial_query(
+            query_id=str(uuid.uuid4()),
+            query_type="raster_load",
+            file_path=file_path,
+            parameters={"cache_key": cache_key},
+            result_summary={"stats": result["stats"], "data_shape": list(result["data"].shape)},
+        )
+
         return jsonify(result_json), 200
     
     except Exception as e:
@@ -114,7 +124,16 @@ def query_raster_point():
             return jsonify({"error": f"File not found: {file_path}"}), 404
         
         value = asyncio.run(engine.read_raster_at_point(file_path, lon, lat))
-        
+
+        import uuid
+        get_api_store().store_geospatial_query(
+            query_id=str(uuid.uuid4()),
+            query_type="raster_point_query",
+            file_path=file_path,
+            parameters={"lon": lon, "lat": lat},
+            result_summary={"value": value},
+        )
+
         return jsonify({
             "lon": lon,
             "lat": lat,
@@ -168,7 +187,15 @@ def compute_ndvi():
                 )
             }
         }
-        
+
+        import uuid
+        get_api_store().store_geospatial_query(
+            query_id=str(uuid.uuid4()),
+            query_type="ndvi",
+            parameters={"red_band": red_band, "nir_band": nir_band},
+            result_summary={"stats": result["stats"]},
+        )
+
         return jsonify(result_json), 200
     
     except Exception as e:
@@ -196,7 +223,15 @@ def raster_statistics():
             return jsonify({"error": f"File not found: {file_path}"}), 404
         
         stats = asyncio.run(engine.compute_raster_statistics(file_path))
-        
+
+        import uuid
+        get_api_store().store_geospatial_query(
+            query_id=str(uuid.uuid4()),
+            query_type="raster_statistics",
+            file_path=file_path,
+            result_summary=stats,
+        )
+
         return jsonify(stats), 200
     
     except Exception as e:
@@ -234,7 +269,16 @@ def load_vector():
             "preview": result["preview"],
             "cached": cache_key is not None
         }
-        
+
+        import uuid
+        get_api_store().store_geospatial_query(
+            query_id=str(uuid.uuid4()),
+            query_type="vector_load",
+            file_path=file_path,
+            parameters={"cache_key": cache_key},
+            result_summary={"feature_count": result["metadata"].to_dict().get("feature_count")},
+        )
+
         return jsonify(result_json), 200
     
     except Exception as e:
@@ -410,6 +454,18 @@ def clear_cache():
             "message": "Cache cleared"
         }), 200
     
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/geo/history', methods=['GET'])
+def query_history():
+    """Retrieve geospatial query history from the database"""
+    try:
+        query_type = request.args.get('type')
+        limit = request.args.get('limit', 50, type=int)
+        records = get_api_store().get_geospatial_history(query_type=query_type, limit=limit)
+        return jsonify({"count": len(records), "records": records}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
