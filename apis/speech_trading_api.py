@@ -5,6 +5,7 @@ RESTful API for audio-driven trading signal generation
 """
 
 import asyncio
+import hashlib
 import functools
 import json
 import time
@@ -55,6 +56,115 @@ def initialize_systems():
         logger.error(f"❌ Failed to initialize ML speech system: {e}")
     
     return success_count == 2
+
+# ============================================================================
+# SIGNAL FORMATTERS
+# ============================================================================
+
+_CONFIDENCE_MULTIPLIER = 6
+_MIN_URGENCY = 1
+_MAX_URGENCY = 10
+_RISK_WEIGHT = {'high': 4, 'medium': 2, 'low': 1}
+_RISK_LEVEL_EXPIRY_MINUTES = {'high': 5, 'medium': 30, 'low': 120}
+
+
+def _format_signal(signal) -> Dict[str, Any]:
+    """Format a TradingSignal with enhanced fields"""
+    confidence = signal.confidence
+    risk_level = signal.risk_level
+    signal_type = signal.signal_type.value
+
+    if confidence >= 0.75:
+        confidence_tier = "high"
+    elif confidence >= 0.4:
+        confidence_tier = "medium"
+    else:
+        confidence_tier = "low"
+
+    risk_weight = _RISK_WEIGHT.get(risk_level, 1)
+    urgency_score = min(_MAX_URGENCY, max(_MIN_URGENCY, int(confidence * _CONFIDENCE_MULTIPLIER + risk_weight)))
+
+    if signal_type == 'buy':
+        recommended_action = "Strong Buy" if confidence >= 0.75 else "Buy"
+    elif signal_type == 'sell':
+        recommended_action = "Strong Sell" if confidence >= 0.75 else "Sell"
+    elif signal_type == 'hedge':
+        recommended_action = "Hedge"
+    else:
+        recommended_action = "Hold"
+
+    expiry_minutes = _RISK_LEVEL_EXPIRY_MINUTES.get(risk_level, 30)
+    expires_at = (signal.timestamp + timedelta(minutes=expiry_minutes)).isoformat()
+
+    raw = f"{signal.symbol}:{signal_type}:{signal.timestamp.isoformat()}"
+    signal_id = hashlib.sha256(raw.encode()).hexdigest()[:12]
+
+    return {
+        'signal_id': signal_id,
+        'signal_type': signal_type,
+        'symbol': signal.symbol,
+        'confidence': confidence,
+        'confidence_tier': confidence_tier,
+        'urgency_score': urgency_score,
+        'recommended_action': recommended_action,
+        'reasoning': signal.reasoning,
+        'source': signal.source.value,
+        'timestamp': signal.timestamp.isoformat(),
+        'expires_at': expires_at,
+        'risk_level': risk_level
+    }
+
+
+def _format_enhanced_signal(signal, include_predictions: bool = False) -> Dict[str, Any]:
+    """Format an EnhancedTradingSignal with enhanced fields"""
+    base = signal.base_signal
+    formatted_base = _format_signal(base)
+
+    confidence_delta = round(signal.enhanced_confidence - base.confidence, 4)
+
+    ml_consensus = True
+    if signal.ml_predictions:
+        supporting = sum(1 for p in signal.ml_predictions if p.confidence >= 0.5)
+        ml_consensus = supporting >= len(signal.ml_predictions) / 2
+
+    priority = signal.execution_priority
+    if priority >= 8:
+        priority_label = "Critical"
+    elif priority >= 6:
+        priority_label = "High"
+    elif priority >= 4:
+        priority_label = "Normal"
+    else:
+        priority_label = "Low"
+
+    result = {
+        'base_signal': formatted_base,
+        'ml_enhancement': {
+            'enhanced_confidence': signal.enhanced_confidence,
+            'confidence_delta': confidence_delta,
+            'risk_score': signal.risk_score,
+            'market_impact_prediction': signal.market_impact_prediction,
+            'execution_priority': signal.execution_priority,
+            'priority_label': priority_label,
+            'ml_consensus': ml_consensus,
+            'ml_predictions_count': len(signal.ml_predictions)
+        }
+    }
+
+    if include_predictions:
+        result['ml_predictions'] = [
+            {
+                'model_type': pred.model_type.value,
+                'confidence': pred.confidence,
+                'features_used': pred.features_used,
+                'timestamp': pred.timestamp.isoformat(),
+                'model_version': pred.model_version
+            }
+            for pred in signal.ml_predictions
+        ]
+
+    return result
+
 
 # ============================================================================
 # HEALTH AND STATUS
@@ -156,17 +266,7 @@ async def process_audio():
         signals = await speech_connector.process_audio_transcription(audio_data)
         
         # Format results
-        formatted_signals = []
-        for signal in signals:
-            formatted_signals.append({
-                'signal_type': signal.signal_type.value,
-                'symbol': signal.symbol,
-                'confidence': signal.confidence,
-                'reasoning': signal.reasoning,
-                'source': signal.source.value,
-                'timestamp': signal.timestamp.isoformat(),
-                'risk_level': signal.risk_level
-            })
+        formatted_signals = [_format_signal(s) for s in signals]
         
         return jsonify({
             'audio_text': audio_text,
@@ -212,17 +312,7 @@ def get_trading_signals():
             signals = speech_connector.get_recent_signals(limit)
         
         # Format results
-        formatted_signals = []
-        for signal in signals:
-            formatted_signals.append({
-                'signal_type': signal.signal_type.value,
-                'symbol': signal.symbol,
-                'confidence': signal.confidence,
-                'reasoning': signal.reasoning,
-                'source': signal.source.value,
-                'timestamp': signal.timestamp.isoformat(),
-                'risk_level': signal.risk_level
-            })
+        formatted_signals = [_format_signal(s) for s in signals]
         
         return jsonify({
             'signals': formatted_signals,
@@ -272,37 +362,7 @@ async def process_audio_with_ml():
         enhanced_signals = await ml_speech_system.process_audio_with_ml(audio_data)
         
         # Format results
-        formatted_signals = []
-        for signal in enhanced_signals:
-            base = signal.base_signal
-            formatted_signals.append({
-                'base_signal': {
-                    'signal_type': base.signal_type.value,
-                    'symbol': base.symbol,
-                    'confidence': base.confidence,
-                    'reasoning': base.reasoning,
-                    'source': base.source.value,
-                    'timestamp': base.timestamp.isoformat(),
-                    'risk_level': base.risk_level
-                },
-                'ml_enhancement': {
-                    'enhanced_confidence': signal.enhanced_confidence,
-                    'risk_score': signal.risk_score,
-                    'market_impact_prediction': signal.market_impact_prediction,
-                    'execution_priority': signal.execution_priority,
-                    'ml_predictions_count': len(signal.ml_predictions)
-                },
-                'ml_predictions': [
-                    {
-                        'model_type': pred.model_type.value,
-                        'confidence': pred.confidence,
-                        'features_used': pred.features_used,
-                        'timestamp': pred.timestamp.isoformat(),
-                        'model_version': pred.model_version
-                    }
-                    for pred in signal.ml_predictions
-                ]
-            })
+        formatted_signals = [_format_enhanced_signal(s, include_predictions=True) for s in enhanced_signals]
         
         return jsonify({
             'audio_text': audio_text,
@@ -333,26 +393,7 @@ def get_enhanced_signals():
             signals = ml_speech_system.get_enhanced_signals(limit)
         
         # Format results
-        formatted_signals = []
-        for signal in signals:
-            base = signal.base_signal
-            formatted_signals.append({
-                'base_signal': {
-                    'signal_type': base.signal_type.value,
-                    'symbol': base.symbol,
-                    'confidence': base.confidence,
-                    'reasoning': base.reasoning,
-                    'source': base.source.value,
-                    'timestamp': base.timestamp.isoformat(),
-                    'risk_level': base.risk_level
-                },
-                'ml_enhancement': {
-                    'enhanced_confidence': signal.enhanced_confidence,
-                    'risk_score': signal.risk_score,
-                    'market_impact_prediction': signal.market_impact_prediction,
-                    'execution_priority': signal.execution_priority
-                }
-            })
+        formatted_signals = [_format_enhanced_signal(s) for s in signals]
         
         return jsonify({
             'enhanced_signals': formatted_signals,
@@ -530,22 +571,9 @@ async def demo_basic_speech_trading():
         results = []
         for audio_data in demo_audio_data:
             signals = await speech_connector.process_audio_transcription(audio_data)
-            
-            formatted_signals = []
-            for signal in signals:
-                formatted_signals.append({
-                    'signal_type': signal.signal_type.value,
-                    'symbol': signal.symbol,
-                    'confidence': signal.confidence,
-                    'reasoning': signal.reasoning,
-                    'source': signal.source.value,
-                    'timestamp': signal.timestamp.isoformat(),
-                    'risk_level': signal.risk_level
-                })
-            
             results.append({
                 'audio_data': audio_data,
-                'signals': formatted_signals
+                'signals': [_format_signal(s) for s in signals]
             })
         
         return jsonify({
@@ -582,32 +610,9 @@ async def demo_ml_enhanced_speech_trading():
         results = []
         for audio_data in demo_audio_data:
             enhanced_signals = await ml_speech_system.process_audio_with_ml(audio_data)
-            
-            formatted_signals = []
-            for signal in enhanced_signals:
-                base = signal.base_signal
-                formatted_signals.append({
-                    'base_signal': {
-                        'signal_type': base.signal_type.value,
-                        'symbol': base.symbol,
-                        'confidence': base.confidence,
-                        'reasoning': base.reasoning,
-                        'source': base.source.value,
-                        'timestamp': base.timestamp.isoformat(),
-                        'risk_level': base.risk_level
-                    },
-                    'ml_enhancement': {
-                        'enhanced_confidence': signal.enhanced_confidence,
-                        'risk_score': signal.risk_score,
-                        'market_impact_prediction': signal.market_impact_prediction,
-                        'execution_priority': signal.execution_priority,
-                        'ml_predictions_count': len(signal.ml_predictions)
-                    }
-                })
-            
             results.append({
                 'audio_data': audio_data,
-                'enhanced_signals': formatted_signals
+                'enhanced_signals': [_format_enhanced_signal(s) for s in enhanced_signals]
             })
         
         return jsonify({
