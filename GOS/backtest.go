@@ -6,6 +6,9 @@ import (
 	"time"
 )
 
+// tradingDaysPerYear is the approximate number of trading days in a calendar year.
+const tradingDaysPerYear = 252.0
+
 // ── Data structures ────────────────────────────────────────────────────────────
 
 // Bar represents a single OHLCV price bar.
@@ -243,7 +246,7 @@ func (e *BacktestEngine) calculateResults(
 ) BacktestResult {
 	totalReturn := (finalEquity - e.config.InitialCapital) / e.config.InitialCapital
 
-	years := float64(numBars) / 252.0
+	years := float64(numBars) / tradingDaysPerYear
 	annualizedReturn := 0.0
 	if years > 0 {
 		annualizedReturn = math.Pow(1.0+totalReturn, 1.0/years) - 1.0
@@ -319,7 +322,7 @@ func (e *BacktestEngine) calculateSharpe(curve []EquityPoint) float64 {
 	if stdDev == 0 {
 		return 0.0
 	}
-	return (mean / stdDev) * math.Sqrt(252)
+	return (mean / stdDev) * math.Sqrt(tradingDaysPerYear)
 }
 
 func (e *BacktestEngine) calculateMaxDrawdown(curve []EquityPoint) float64 {

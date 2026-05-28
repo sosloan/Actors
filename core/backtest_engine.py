@@ -27,6 +27,9 @@ from datetime import datetime, timezone
 from enum import Enum, auto
 from typing import List, Optional, Tuple
 
+# Approximate number of trading days per calendar year.
+_TRADING_DAYS_PER_YEAR: float = 252.0
+
 
 # ── Data structures ─────────────────────────────────────────────────────────────
 
@@ -273,7 +276,7 @@ class BacktestEngine:
     ) -> BacktestResult:
         total_return = (final_equity - self._config.initial_capital) / self._config.initial_capital
 
-        years = num_bars / 252.0
+        years = num_bars / _TRADING_DAYS_PER_YEAR
         annualized_return = (
             (1.0 + total_return) ** (1.0 / years) - 1.0 if years > 0 else 0.0
         )
@@ -318,7 +321,7 @@ class BacktestEngine:
         std_dev = math.sqrt(variance)
         if std_dev == 0.0:
             return 0.0
-        return (mean / std_dev) * math.sqrt(252)
+        return (mean / std_dev) * math.sqrt(_TRADING_DAYS_PER_YEAR)
 
     def _max_drawdown(self, curve: List[Tuple[datetime, float]]) -> float:
         if not curve:

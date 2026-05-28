@@ -15,6 +15,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
+/// Approximate number of trading days per calendar year.
+const TRADING_DAYS_PER_YEAR: f64 = 252.0;
+
 // ── Data structures ────────────────────────────────────────────────────────────
 
 /// A single OHLCV price bar.
@@ -262,9 +265,9 @@ impl BacktestEngine {
     ) -> BacktestResult {
         let total_return = (final_equity - self.config.initial_capital) / self.config.initial_capital;
 
-        // Annualised return: use trading days as a proxy (≈252 days/year).
+        // Annualised return: use trading days as a proxy.
         let trading_days = bars.len() as f64;
-        let years = trading_days / 252.0;
+        let years = trading_days / TRADING_DAYS_PER_YEAR;
         let annualized_return = if years > 0.0 {
             (1.0 + total_return).powf(1.0 / years) - 1.0
         } else {
@@ -322,8 +325,8 @@ impl BacktestEngine {
         if std_dev == 0.0 {
             return 0.0;
         }
-        // Risk-free rate ≈ 0 for daily returns; annualise by √252.
-        (mean / std_dev) * 252_f64.sqrt()
+        // Risk-free rate ≈ 0 for daily returns; annualise by √trading days.
+        (mean / std_dev) * TRADING_DAYS_PER_YEAR.sqrt()
     }
 
     fn calculate_max_drawdown(&self, equity_curve: &[(DateTime<Utc>, f64)]) -> f64 {
