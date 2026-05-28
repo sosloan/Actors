@@ -304,6 +304,500 @@ impl SystemMonitor {
     }
 }
 
+// ── AI-Driven Investment Strategy Module ──────────────────────────────────────
+//
+// Extends the FinancialEngine with Modern Portfolio Theory, Kelly Criterion
+// position sizing, advanced risk metrics, and a portfolio rebalancing engine.
+
+/// Portfolio optimisation objective
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum OptimisationObjective {
+    MaximiseSharpe,
+    MinimiseVariance,
+    MaximiseReturn,
+    RiskParity,
+    KellyCriterion,
+}
+
+/// Target allocation for a single asset produced by the optimiser
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssetAllocation {
+    pub symbol: String,
+    pub target_weight: f64,
+    pub expected_return: f64,
+    pub volatility: f64,
+    pub risk_contribution: f64,
+}
+
+/// Full result from a portfolio optimisation run
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PortfolioOptimisationResult {
+    pub objective: OptimisationObjective,
+    pub allocations: Vec<AssetAllocation>,
+    pub expected_portfolio_return: f64,
+    pub expected_portfolio_volatility: f64,
+    pub sharpe_ratio: f64,
+    pub sortino_ratio: f64,
+    pub diversification_ratio: f64,
+    pub iterations: usize,
+}
+
+/// Rebalancing order computed from current vs. target weights
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RebalanceOrder {
+    pub symbol: String,
+    pub action: String,          // "buy", "sell", "hold"
+    pub current_weight: f64,
+    pub target_weight: f64,
+    pub drift: f64,
+    pub estimated_trade_value: f64,
+}
+
+/// AI-driven portfolio optimiser using gradient-based methods.
+///
+/// All inputs are annualised.  The optimiser does not require an external
+/// solver; it uses projected-gradient ascent / descent on a simplex.
+pub struct PortfolioOptimiser {
+    pub risk_free_rate: f64,
+}
+
+impl PortfolioOptimiser {
+    /// Create a new optimiser with the given annualised risk-free rate.
+    pub fn new(risk_free_rate: f64) -> Self {
+        Self { risk_free_rate }
+    }
+
+    /// Optimise portfolio weights for `symbols` given annualised expected
+    /// returns `mu` (length N) and covariance matrix `cov` (N×N, row-major).
+    ///
+    /// Returns `None` if inputs are inconsistent.
+    pub fn optimise(
+        &self,
+        symbols: &[String],
+        mu: &[f64],
+        cov: &[Vec<f64>],
+        objective: OptimisationObjective,
+        min_weight: f64,
+        max_weight: f64,
+    ) -> Option<PortfolioOptimisationResult> {
+        let n = symbols.len();
+        if n == 0 || mu.len() != n || cov.len() != n {
+            return None;
+        }
+
+        let (weights, iters) = match objective {
+            OptimisationObjective::MaximiseSharpe => {
+                self.maximise_sharpe(mu, cov, min_weight, max_weight, n)
+            }
+            OptimisationObjective::MinimiseVariance => {
+                self.minimise_variance(cov, min_weight, max_weight, n)
+            }
+            OptimisationObjective::RiskParity => {
+                self.risk_parity(cov, min_weight, max_weight, n)
+            }
+            OptimisationObjective::KellyCriterion => {
+                self.kelly_portfolio(mu, cov, min_weight, max_weight, n)
+            }
+            OptimisationObjective::MaximiseReturn => {
+                self.maximise_return(mu, min_weight, max_weight, n)
+            }
+        };
+
+        let port_return = dot(&weights, mu);
+        let port_var = portfolio_variance(&weights, cov);
+        let port_vol = port_var.sqrt().max(1e-12);
+        let sharpe = (port_return - self.risk_free_rate) / port_vol;
+        let sortino = self.sortino_from_vol(port_return, port_vol);
+        let div_ratio = self.diversification_ratio(&weights, cov);
+
+        let vols: Vec<f64> = (0..n).map(|i| cov[i][i].sqrt()).collect();
+        let risk_contributions: Vec<f64> = (0..n)
+            .map(|i| {
+                let mrc = marginal_risk_contribution(&weights, cov, i);
+                weights[i] * mrc / port_vol
+            })
+            .collect();
+
+        let allocations = symbols
+            .iter()
+            .enumerate()
+            .map(|(i, sym)| AssetAllocation {
+                symbol: sym.clone(),
+                target_weight: weights[i],
+                expected_return: mu[i],
+                volatility: vols[i],
+                risk_contribution: risk_contributions[i],
+            })
+            .collect();
+
+        Some(PortfolioOptimisationResult {
+            objective,
+            allocations,
+            expected_portfolio_return: port_return,
+            expected_portfolio_volatility: port_vol,
+            sharpe_ratio: sharpe,
+            sortino_ratio: sortino,
+            diversification_ratio: div_ratio,
+            iterations: iters,
+        })
+    }
+
+    // ── Optimisation algorithms ──────────────────────────────────────────────
+
+    fn maximise_sharpe(
+        &self, mu: &[f64], cov: &[Vec<f64>],
+        lo: f64, hi: f64, n: usize,
+    ) -> (Vec<f64>, usize) {
+        let mut w = uniform_weights(n);
+        let lr = 1e-3_f64;
+        let tol = 1e-9_f64;
+
+        for iter in 0..1000 {
+            let port_vol = portfolio_variance(&w, cov).sqrt().max(1e-12);
+            let excess = dot(&w, mu) - self.risk_free_rate;
+            let grad: Vec<f64> = (0..n)
+                .map(|i| {
+                    let mrc = marginal_risk_contribution(&w, cov, i);
+                    (mu[i] * port_vol - excess * mrc) / (port_vol * port_vol)
+                })
+                .collect();
+
+            let w_new: Vec<f64> = w.iter().zip(&grad).map(|(wi, gi)| wi + lr * gi).collect();
+            let w_new = project_simplex(w_new, lo, hi);
+
+            let delta: f64 = w_new.iter().zip(&w).map(|(a, b)| (a - b).powi(2)).sum::<f64>().sqrt();
+            w = w_new;
+            if delta < tol {
+                return (w, iter + 1);
+            }
+        }
+        (w, 1000)
+    }
+
+    fn minimise_variance(
+        &self, cov: &[Vec<f64>], lo: f64, hi: f64, n: usize,
+    ) -> (Vec<f64>, usize) {
+        let mut w = uniform_weights(n);
+        let lr = 5e-4_f64;
+        let tol = 1e-10_f64;
+
+        for iter in 0..1000 {
+            let grad: Vec<f64> = (0..n)
+                .map(|i| 2.0 * marginal_risk_contribution(&w, cov, i))
+                .collect();
+            let w_new = project_simplex(
+                w.iter().zip(&grad).map(|(wi, gi)| wi - lr * gi).collect(),
+                lo, hi,
+            );
+            let delta: f64 = w_new.iter().zip(&w).map(|(a, b)| (a - b).powi(2)).sum::<f64>().sqrt();
+            w = w_new;
+            if delta < tol {
+                return (w, iter + 1);
+            }
+        }
+        (w, 1000)
+    }
+
+    fn risk_parity(
+        &self, cov: &[Vec<f64>], lo: f64, hi: f64, n: usize,
+    ) -> (Vec<f64>, usize) {
+        let mut w = uniform_weights(n);
+        let lr = 1e-3_f64;
+        let tol = 1e-10_f64;
+
+        for iter in 0..2000 {
+            let port_var = portfolio_variance(&w, cov);
+            let port_vol = port_var.sqrt().max(1e-12);
+            let target_rc = port_vol / n as f64;
+
+            let grad: Vec<f64> = (0..n)
+                .map(|i| {
+                    let mrc = marginal_risk_contribution(&w, cov, i);
+                    let rc = w[i] * mrc / port_vol;
+                    2.0 * (rc - target_rc) * mrc
+                })
+                .collect();
+
+            let w_new = project_simplex(
+                w.iter().zip(&grad).map(|(wi, gi)| wi - lr * gi).collect(),
+                lo, hi,
+            );
+            let delta: f64 = w_new.iter().zip(&w).map(|(a, b)| (a - b).powi(2)).sum::<f64>().sqrt();
+            w = w_new;
+            if delta < tol {
+                return (w, iter + 1);
+            }
+        }
+        (w, 2000)
+    }
+
+    fn kelly_portfolio(
+        &self, mu: &[f64], cov: &[Vec<f64>], lo: f64, hi: f64, n: usize,
+    ) -> (Vec<f64>, usize) {
+        // Approximate Kelly: w ∝ max(Σ⁻¹(μ − rf), 0), then scale by KELLY_FRACTION.
+        // Half-Kelly (0.5) is the recommended default: it roughly halves drawdowns
+        // while retaining ~75% of full-Kelly long-run growth (Thorp 2006).
+        const KELLY_FRACTION: f64 = 0.5;
+        let excess: Vec<f64> = mu.iter().map(|m| m - self.risk_free_rate).collect();
+        // Simple diagonal-only approximation of Σ⁻¹ for robustness
+        let w_raw: Vec<f64> = (0..n)
+            .map(|i| {
+                let var_i = cov[i][i].max(1e-8);
+                (excess[i] / var_i).max(0.0)
+            })
+            .collect();
+        let total: f64 = w_raw.iter().sum();
+        let w = if total > 0.0 {
+            project_simplex(w_raw.iter().map(|x| x / total * KELLY_FRACTION).collect(), lo, hi)
+        } else {
+            uniform_weights(n)
+        };
+        (w, 1)
+    }
+
+    fn maximise_return(
+        &self, mu: &[f64], lo: f64, hi: f64, n: usize,
+    ) -> (Vec<f64>, usize) {
+        // Greedy: allocate max weight to highest-return assets
+        let mut indexed: Vec<(usize, f64)> = mu.iter().cloned().enumerate().collect();
+        indexed.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+
+        let mut w = vec![lo; n];
+        let mut remaining = 1.0 - lo * n as f64;
+        for (idx, _) in &indexed {
+            let alloc = remaining.min(hi - lo);
+            w[*idx] += alloc;
+            remaining -= alloc;
+            if remaining <= 0.0 {
+                break;
+            }
+        }
+        (w, 1)
+    }
+
+    fn sortino_from_vol(&self, port_return: f64, port_vol: f64) -> f64 {
+        // Downside deviation is approximated as DOWNSIDE_VOL_RATIO × total vol.
+        // Empirical studies (Sortino & Satchell 2001) show this ratio is typically
+        // 0.65–0.75 for diversified equity portfolios; 0.70 is the midpoint default.
+        const DOWNSIDE_VOL_RATIO: f64 = 0.70;
+        let downside_vol = port_vol * DOWNSIDE_VOL_RATIO;
+        if downside_vol == 0.0 {
+            return 0.0;
+        }
+        (port_return - self.risk_free_rate) / downside_vol
+    }
+
+    fn diversification_ratio(&self, weights: &[f64], cov: &[Vec<f64>]) -> f64 {
+        let n = weights.len();
+        let vols: Vec<f64> = (0..n).map(|i| cov[i][i].sqrt()).collect();
+        let weighted_vol: f64 = weights.iter().zip(&vols).map(|(w, v)| w * v).sum();
+        let port_vol = portfolio_variance(weights, cov).sqrt().max(1e-12);
+        weighted_vol / port_vol
+    }
+}
+
+/// Portfolio rebalancing engine — produces rebalance orders when drift exceeds threshold.
+pub struct PortfolioRebalancingEngine {
+    pub drift_threshold: f64,
+}
+
+impl PortfolioRebalancingEngine {
+    pub fn new(drift_threshold: f64) -> Self {
+        Self { drift_threshold }
+    }
+
+    /// Compute rebalancing orders given current weights, target weights and
+    /// total portfolio value.
+    pub fn compute_orders(
+        &self,
+        current_weights: &HashMap<String, f64>,
+        target_weights: &HashMap<String, f64>,
+        portfolio_value: f64,
+    ) -> Vec<RebalanceOrder> {
+        let all_symbols: std::collections::HashSet<&String> =
+            current_weights.keys().chain(target_weights.keys()).collect();
+
+        let mut orders: Vec<RebalanceOrder> = all_symbols
+            .iter()
+            .filter_map(|sym| {
+                let cur = *current_weights.get(*sym).unwrap_or(&0.0);
+                let tgt = *target_weights.get(*sym).unwrap_or(&0.0);
+                let drift = tgt - cur;
+                if drift.abs() < self.drift_threshold {
+                    return None;
+                }
+                let action = if drift > 0.0 { "buy" } else { "sell" }.to_string();
+                Some(RebalanceOrder {
+                    symbol: (*sym).clone(),
+                    action,
+                    current_weight: cur,
+                    target_weight: tgt,
+                    drift,
+                    estimated_trade_value: drift.abs() * portfolio_value,
+                })
+            })
+            .collect();
+
+        // Sort by absolute drift descending (most urgent first)
+        orders.sort_by(|a, b| b.drift.abs().partial_cmp(&a.drift.abs()).unwrap_or(std::cmp::Ordering::Equal));
+        orders
+    }
+}
+
+// ── Extended FinancialEngine metrics ────────────────────────────────────────
+
+impl FinancialEngine {
+    /// Sortino ratio using downside deviation (returns below `mar`).
+    pub fn calculate_sortino_ratio(&self, returns: &[f64], mar: f64) -> f64 {
+        if returns.is_empty() {
+            return 0.0;
+        }
+        let downside: Vec<f64> = returns.iter().filter(|&&r| r < mar).map(|&r| r).collect();
+        if downside.is_empty() {
+            return f64::INFINITY;
+        }
+        let downside_dev = (downside.iter().map(|r| r.powi(2)).sum::<f64>() / downside.len() as f64)
+            .sqrt()
+            * (252_f64).sqrt();
+        let avg_return = returns.iter().sum::<f64>() / returns.len() as f64 * 252.0;
+        (avg_return - self.risk_free_rate) / downside_dev
+    }
+
+    /// Calmar ratio: annualised return / absolute max drawdown.
+    pub fn calculate_calmar_ratio(&self, annualised_return: f64, max_drawdown: f64) -> f64 {
+        if max_drawdown == 0.0 {
+            return 0.0;
+        }
+        annualised_return / max_drawdown.abs()
+    }
+
+    /// Information ratio: active return / tracking error.
+    pub fn calculate_information_ratio(
+        &self,
+        portfolio_returns: &[f64],
+        benchmark_returns: &[f64],
+    ) -> f64 {
+        if portfolio_returns.len() != benchmark_returns.len() || portfolio_returns.is_empty() {
+            return 0.0;
+        }
+        let active: Vec<f64> = portfolio_returns
+            .iter()
+            .zip(benchmark_returns)
+            .map(|(p, b)| p - b)
+            .collect();
+        let tracking_error = self.calculate_volatility(&active);
+        if tracking_error == 0.0 {
+            return 0.0;
+        }
+        let avg_active = active.iter().sum::<f64>() / active.len() as f64 * 252.0;
+        avg_active / (tracking_error * (252_f64).sqrt())
+    }
+
+    /// Kelly Criterion: optimal fraction of capital to risk.
+    ///
+    /// `fraction` scales the full Kelly (use 0.5 for half-Kelly).
+    pub fn kelly_position_size(
+        &self,
+        win_rate: f64,
+        avg_win: f64,
+        avg_loss: f64,
+        fraction: f64,
+    ) -> f64 {
+        if avg_loss == 0.0 {
+            return 0.0;
+        }
+        let b = avg_win / avg_loss;
+        let kelly = (b * win_rate - (1.0 - win_rate)) / b;
+        (kelly * fraction).max(0.0)
+    }
+
+    /// Max drawdown of an equity curve.
+    pub fn calculate_max_drawdown(&self, equity_curve: &[f64]) -> f64 {
+        if equity_curve.is_empty() {
+            return 0.0;
+        }
+        let mut peak = equity_curve[0];
+        let mut max_dd = 0.0_f64;
+        for &v in equity_curve {
+            if v > peak {
+                peak = v;
+            }
+            let dd = (v - peak) / peak;
+            if dd < max_dd {
+                max_dd = dd;
+            }
+        }
+        max_dd
+    }
+
+    /// Omega ratio: probability-weighted gains / losses above threshold `tau`.
+    pub fn calculate_omega_ratio(&self, returns: &[f64], tau: f64) -> f64 {
+        if returns.is_empty() {
+            return 1.0;
+        }
+        let gains: f64 = returns.iter().filter(|&&r| r > tau).map(|&r| r - tau).sum();
+        let losses: f64 = returns.iter().filter(|&&r| r <= tau).map(|&r| tau - r).sum();
+        if losses == 0.0 {
+            return f64::INFINITY;
+        }
+        gains / losses
+    }
+}
+
+// ── Linear-algebra helpers (no external crate) ──────────────────────────────
+
+fn dot(a: &[f64], b: &[f64]) -> f64 {
+    a.iter().zip(b).map(|(x, y)| x * y).sum()
+}
+
+fn portfolio_variance(weights: &[f64], cov: &[Vec<f64>]) -> f64 {
+    let n = weights.len();
+    let mut var = 0.0_f64;
+    for i in 0..n {
+        for j in 0..n {
+            var += weights[i] * weights[j] * cov[i][j];
+        }
+    }
+    var.max(0.0)
+}
+
+fn marginal_risk_contribution(weights: &[f64], cov: &[Vec<f64>], k: usize) -> f64 {
+    // (Σw)[k]
+    cov[k].iter().zip(weights).map(|(c, w)| c * w).sum()
+}
+
+fn uniform_weights(n: usize) -> Vec<f64> {
+    vec![1.0 / n as f64; n]
+}
+
+/// Project a weight vector onto the probability simplex with per-asset bounds
+/// [lo, hi] using iterative clipping + renormalisation (≈ Dykstra's algorithm).
+fn project_simplex(mut w: Vec<f64>, lo: f64, hi: f64) -> Vec<f64> {
+    let n = w.len();
+    for _ in 0..50 {
+        for wi in w.iter_mut() {
+            *wi = wi.clamp(lo, hi);
+        }
+        let s: f64 = w.iter().sum();
+        if s <= 0.0 {
+            return vec![1.0 / n as f64; n];
+        }
+        let scale = 1.0 / s;
+        for wi in w.iter_mut() {
+            *wi *= scale;
+        }
+        // Re-clip after normalisation
+        for wi in w.iter_mut() {
+            *wi = wi.clamp(lo, hi);
+        }
+        let s2: f64 = w.iter().sum();
+        if (s2 - 1.0).abs() < 1e-9 {
+            break;
+        }
+    }
+    w
+}
+
 // ── StudyHall Economy Module ───────────────────────────────────────────────────
 //
 // Author: Steve Sloan (Prince Sloan)
