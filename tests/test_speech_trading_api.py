@@ -603,5 +603,152 @@ class TestErrorHandlers:
         assert "application/json" in resp.content_type
 
 
+# ---------------------------------------------------------------------------
+# GET /api/signals/sources
+# ---------------------------------------------------------------------------
+
+class TestSignalSources:
+    def test_returns_200(self, client):
+        resp = client.get("/api/signals/sources")
+        assert resp.status_code == 200
+
+    def test_response_structure(self, client):
+        data = client.get("/api/signals/sources").get_json()
+        assert "sources" in data
+        assert "total" in data
+
+    def test_sources_list_is_non_empty(self, client):
+        data = client.get("/api/signals/sources").get_json()
+        assert len(data["sources"]) > 0
+        assert data["total"] == len(data["sources"])
+
+    def test_known_source_present(self, client):
+        data = client.get("/api/signals/sources").get_json()
+        assert "financial_news" in data["sources"]
+
+
+# ---------------------------------------------------------------------------
+# Limit applied when filtering by symbol or source
+# ---------------------------------------------------------------------------
+
+class TestSignalFilterLimit:
+    def test_limit_applied_when_filtering_by_symbol(self, client):
+        connector = MagicMock()
+        connector.get_signals_by_symbol.return_value = [
+            _make_signal(symbol="AAPL") for _ in range(5)
+        ]
+        api_module.speech_connector = connector
+
+        data = client.get("/api/signals?symbol=AAPL&limit=2").get_json()
+        assert len(data["signals"]) <= 2
+
+    def test_limit_applied_when_filtering_by_source(self, client):
+        connector = MagicMock()
+        connector.get_signals_by_source.return_value = [
+            _make_signal() for _ in range(5)
+        ]
+        api_module.speech_connector = connector
+
+        data = client.get("/api/signals?source=financial_news&limit=3").get_json()
+        assert len(data["signals"]) <= 3
+
+
+# ---------------------------------------------------------------------------
+# Duration validation
+# ---------------------------------------------------------------------------
+
+class TestDurationValidation:
+    def test_zero_duration_returns_400_basic(self, client):
+        api_module.speech_connector = MagicMock()
+        resp = client.post("/api/audio/process", json={"text": "AAPL up", "duration": 0})
+        assert resp.status_code == 400
+        assert "Duration" in resp.get_json()["error"]
+
+    def test_negative_duration_returns_400_basic(self, client):
+        api_module.speech_connector = MagicMock()
+        resp = client.post("/api/audio/process", json={"text": "AAPL up", "duration": -5})
+        assert resp.status_code == 400
+
+    def test_positive_duration_accepted_basic(self, client):
+        connector = MagicMock()
+        connector.process_audio_transcription = AsyncMock(return_value=[])
+        api_module.speech_connector = connector
+
+        resp = client.post("/api/audio/process", json={"text": "AAPL up", "duration": 30.0})
+        assert resp.status_code == 200
+
+    def test_zero_duration_returns_400_ml(self, client):
+        api_module.ml_speech_system = MagicMock()
+        resp = client.post("/api/ml/process", json={"text": "AAPL up", "duration": 0})
+        assert resp.status_code == 400
+
+    def test_negative_duration_returns_400_ml(self, client):
+        api_module.ml_speech_system = MagicMock()
+        resp = client.post("/api/ml/process", json={"text": "AAPL up", "duration": -1})
+        assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# average_confidence in analytics
+# ---------------------------------------------------------------------------
+
+class TestAverageConfidence:
+    def test_analytics_overview_includes_average_confidence(self, client):
+        connector = MagicMock()
+        connector.trading_signals = [_make_signal()]
+        connector.get_recent_signals.return_value = [_make_signal()]
+        api_module.speech_connector = connector
+
+        data = client.get("/api/analytics/overview").get_json()
+        assert "average_confidence" in data["systems"]["speech_trading"]
+
+    def test_analytics_overview_average_confidence_value(self, client):
+        sig = _make_signal()
+        sig.confidence = 0.8
+        connector = MagicMock()
+        connector.trading_signals = [sig]
+        connector.get_recent_signals.return_value = [sig]
+        api_module.speech_connector = connector
+
+        data = client.get("/api/analytics/overview").get_json()
+        assert data["systems"]["speech_trading"]["average_confidence"] == pytest.approx(0.8, abs=1e-4)
+
+    def test_analytics_overview_ml_average_confidence(self, client):
+        ml = MagicMock()
+        ml.get_system_status = AsyncMock(return_value={
+            "total_enhanced_signals": 1,
+            "ml_pipeline_health": {"is_active": True}
+        })
+        sig = _make_enhanced_signal()
+        sig.enhanced_confidence = 0.92
+        ml.get_enhanced_signals.return_value = [sig]
+        ml.get_signals_by_priority.return_value = []
+        api_module.ml_speech_system = ml
+
+        data = client.get("/api/analytics/overview").get_json()
+        assert "average_confidence" in data["systems"]["ml_enhanced"]
+
+    def test_analytics_performance_includes_average_confidence(self, client):
+        sig = _make_signal()
+        sig.confidence = 0.75
+        connector = MagicMock()
+        connector.trading_signals = [sig]
+        connector.get_recent_signals.return_value = [sig]
+        api_module.speech_connector = connector
+
+        data = client.get("/api/analytics/performance").get_json()
+        assert "average_confidence" in data["performance"]["speech_trading"]
+        assert data["performance"]["speech_trading"]["average_confidence"] == pytest.approx(0.75, abs=1e-4)
+
+    def test_analytics_overview_zero_signals_confidence(self, client):
+        connector = MagicMock()
+        connector.trading_signals = []
+        connector.get_recent_signals.return_value = []
+        api_module.speech_connector = connector
+
+        data = client.get("/api/analytics/overview").get_json()
+        assert data["systems"]["speech_trading"]["average_confidence"] == 0.0
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
