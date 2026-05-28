@@ -343,6 +343,7 @@ class TestGetEvents:
         manager.event_store.events = events
         data = client.get("/api/events?limit=5").get_json()
         assert data["filters"]["limit"] == 5
+        assert len(data["events"]) == 5
 
 
 # ---------------------------------------------------------------------------
