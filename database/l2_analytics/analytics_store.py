@@ -324,8 +324,13 @@ class AnalyticsStore:
             print("Warning: pyarrow not available. Cannot export to Arrow format.")
             return None
 
+        _allowed_tables = {'matches', 'tick_snapshots', 'entity_telemetry', 'unit_statistics'}
+        if table not in _allowed_tables:
+            print(f"Error exporting to Arrow: table '{table}' is not allowed.")
+            return None
+
         try:
-            filename = f"{match_id}_{table}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.arrows"
+            filename = f"{match_id}_{table}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.arrow"
             filepath = os.path.join(self.config.parquet_export_path, filename)
 
             arrow_table = self.conn.execute(
