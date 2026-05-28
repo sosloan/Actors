@@ -250,7 +250,7 @@ async def _analyze(body: Dict[str, Any]):
         return jsonify(_serialize_result(result))
     except (ValueError, KeyError) as exc:
         logger.warning("Bad request: %s", exc)
-        return jsonify({"error": str(exc)}), 400
+        return jsonify({"error": "Invalid request parameters"}), 400
     except Exception as exc:
         logger.error("Analysis error: %s", exc)
         return jsonify({"error": "Internal server error"}), 500
@@ -291,7 +291,7 @@ async def run_demo():
         })
     except Exception as exc:
         logger.error("Demo error: %s", exc)
-        return jsonify({"error": str(exc)}), 500
+        return jsonify({"error": "Internal server error"}), 500
 
 
 @app.route("/api/defi/history", methods=["GET"])
@@ -373,7 +373,7 @@ async def recommend_allocation():
             },
         })
     except (ValueError, KeyError) as exc:
-        return jsonify({"error": str(exc)}), 400
+        return jsonify({"error": "Invalid request parameters"}), 400
     except Exception as exc:
         logger.error("Allocation recommendation error: %s", exc)
         return jsonify({"error": "Internal server error"}), 500
@@ -411,4 +411,4 @@ if __name__ == "__main__":
     print("  GET  /api/defi/history              – Portfolio history")
     print("  POST /api/defi/allocation/recommend – Allocation recommendation")
 
-    app.run(host="0.0.0.0", port=5005, debug=True)
+    app.run(host="0.0.0.0", port=5005, debug=os.environ.get("FLASK_DEBUG", "").lower() in ("1", "true"))
