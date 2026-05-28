@@ -24,6 +24,13 @@ try:
 except ImportError:
     DUCKDB_AVAILABLE = False
 
+try:
+    import pyarrow as pa
+    import pyarrow.ipc as pa_ipc
+    PYARROW_AVAILABLE = True
+except ImportError:
+    PYARROW_AVAILABLE = False
+
 from ..config import L2Config
 
 
@@ -299,6 +306,40 @@ class AnalyticsStore:
             print(f"Error exporting to Parquet: {e}")
             return None
     
+    def export_to_arrows(self, match_id: str, table: str = 'entity_telemetry') -> Optional[str]:
+        """
+        Export match data to Apache Arrow IPC file.
+
+        Args:
+            match_id: Match to export
+            table: Table to export
+
+        Returns:
+            Path to exported Arrow IPC file or None
+        """
+        if not self.conn:
+            return None
+
+        if not PYARROW_AVAILABLE:
+            print("Warning: pyarrow not available. Cannot export to Arrow format.")
+            return None
+
+        try:
+            filename = f"{match_id}_{table}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.arrows"
+            filepath = os.path.join(self.config.parquet_export_path, filename)
+
+            arrow_table = self.conn.execute(
+                f"SELECT * FROM {table} WHERE match_id = ?", [match_id]
+            ).fetch_arrow_table()
+
+            with pa_ipc.new_file(filepath, arrow_table.schema) as writer:
+                writer.write_table(arrow_table)
+
+            return filepath
+        except Exception as e:
+            print(f"Error exporting to Arrow: {e}")
+            return None
+
     def get_match_statistics(self, match_id: str) -> Optional[Dict[str, Any]]:
         """Get match statistics"""
         if not self.conn:
