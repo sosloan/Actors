@@ -19,6 +19,7 @@ from flask_cors import CORS
 import asyncio
 import sys
 import os
+import uuid
 from pathlib import Path
 
 # Add parent directory to path for imports
@@ -84,7 +85,6 @@ def load_raster():
             "cached": cache_key is not None
         }
 
-        import uuid
         get_api_store().store_geospatial_query(
             query_id=str(uuid.uuid4()),
             query_type="raster_load",
@@ -125,7 +125,6 @@ def query_raster_point():
         
         value = asyncio.run(engine.read_raster_at_point(file_path, lon, lat))
 
-        import uuid
         get_api_store().store_geospatial_query(
             query_id=str(uuid.uuid4()),
             query_type="raster_point_query",
@@ -188,7 +187,6 @@ def compute_ndvi():
             }
         }
 
-        import uuid
         get_api_store().store_geospatial_query(
             query_id=str(uuid.uuid4()),
             query_type="ndvi",
@@ -224,7 +222,6 @@ def raster_statistics():
         
         stats = asyncio.run(engine.compute_raster_statistics(file_path))
 
-        import uuid
         get_api_store().store_geospatial_query(
             query_id=str(uuid.uuid4()),
             query_type="raster_statistics",
@@ -270,7 +267,6 @@ def load_vector():
             "cached": cache_key is not None
         }
 
-        import uuid
         get_api_store().store_geospatial_query(
             query_id=str(uuid.uuid4()),
             query_type="vector_load",
@@ -466,8 +462,8 @@ def query_history():
         limit = request.args.get('limit', 50, type=int)
         records = get_api_store().get_geospatial_history(query_type=query_type, limit=limit)
         return jsonify({"count": len(records), "records": records}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        return jsonify({"error": "Failed to retrieve query history"}), 500
 
 
 @app.route('/api/geo', methods=['GET'])

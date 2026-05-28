@@ -8,6 +8,7 @@ file is only opened on the first call.
 
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Allow imports from the repo root when this file is loaded from apis/
 sys.path.append(str(Path(__file__).parent.parent))
@@ -15,7 +16,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from database.api_store import APIStore
 from database.config import L2Config
 
-_api_store: APIStore = None
+_api_store: Optional[APIStore] = None
 
 
 def get_api_store() -> APIStore:

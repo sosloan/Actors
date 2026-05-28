@@ -9,6 +9,7 @@ import hashlib
 import functools
 import json
 import time
+import uuid
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from flask import Flask, request, jsonify
@@ -270,12 +271,11 @@ async def process_audio():
         formatted_signals = [_format_signal(s) for s in signals]
 
         # Persist each signal to the database
-        import uuid as _uuid
         db = get_api_store()
         for raw, fmt in zip(signals, formatted_signals):
             tickers = getattr(raw, 'tickers', None) or []
             db.store_trading_signal(
-                signal_id=str(_uuid.uuid4()),
+                signal_id=str(uuid.uuid4()),
                 signal_type=raw.signal_type.value if hasattr(raw.signal_type, 'value') else str(raw.signal_type),
                 ticker=tickers[0] if tickers else None,
                 confidence=getattr(raw, 'confidence', None),
@@ -666,7 +666,7 @@ def db_signal_history():
         return jsonify({'count': len(records), 'records': records})
     except Exception as e:
         logger.error(f"❌ DB signal history error: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Failed to retrieve signal history'}), 500
 
 # ============================================================================
 # ASYNC ROUTE HANDLERS

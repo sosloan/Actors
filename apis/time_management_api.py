@@ -654,7 +654,7 @@ def db_event_history():
         return jsonify({'count': len(records), 'records': records})
     except Exception as e:
         logger.error(f"❌ DB event history error: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Failed to retrieve event history'}), 500
 
 # ============================================================================
 # ASYNC ROUTE HANDLERS

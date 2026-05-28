@@ -5,6 +5,7 @@ RESTful API for semantic search and embedding operations with ML integration
 """
 
 import json
+import uuid
 import numpy as np
 from typing import List, Dict, Optional
 from flask import Flask, request, jsonify
@@ -106,7 +107,6 @@ def search_embeddings():
                 'filename': Path(metadata['path']).name
             })
 
-        import uuid
         top = formatted_results[0] if formatted_results else {}
         get_api_store().store_embedding_search(
             search_id=str(uuid.uuid4()),
@@ -464,7 +464,7 @@ def search_history():
         return jsonify({'count': len(records), 'records': records})
     except Exception as e:
         logger.error(f"❌ Search history error: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Failed to retrieve search history'}), 500
 
 # Async route handler wrapper
 def async_route(f):

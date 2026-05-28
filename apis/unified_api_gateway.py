@@ -934,13 +934,16 @@ def internal_error(error):
 @app.route('/api/db/status', methods=['GET'])
 def db_status():
     """Return database connectivity status and recent activity counts"""
+    _allowed_tables = frozenset({
+        'api_requests', 'geospatial_queries', 'embedding_searches',
+        'time_events', 'trading_signals', 'travel_plans'
+    })
     try:
         db = get_api_store()
         connected = db.conn is not None
         counts = {}
         if connected:
-            for table in ('api_requests', 'geospatial_queries', 'embedding_searches',
-                          'time_events', 'trading_signals', 'travel_plans'):
+            for table in _allowed_tables:
                 try:
                     row = db.conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
                     counts[table] = row[0] if row else 0
@@ -952,7 +955,7 @@ def db_status():
         })
     except Exception as e:
         logger.error(f"❌ DB status error: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Failed to retrieve database status'}), 500
 
 @app.route('/api/db/signals', methods=['GET'])
 def db_signals():
@@ -964,7 +967,7 @@ def db_signals():
         return jsonify({'count': len(records), 'records': records})
     except Exception as e:
         logger.error(f"❌ DB signals error: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Failed to retrieve signals'}), 500
 
 @app.route('/api/db/searches', methods=['GET'])
 def db_searches():
@@ -975,7 +978,7 @@ def db_searches():
         return jsonify({'count': len(records), 'records': records})
     except Exception as e:
         logger.error(f"❌ DB searches error: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Failed to retrieve search history'}), 500
 
 # ============================================================================
 # ASYNC ROUTE HANDLERS
