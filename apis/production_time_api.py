@@ -599,11 +599,6 @@ def async_route(f):
     wrapper.__name__ = f.__name__  # Preserve function name
     return wrapper
 
-# Apply async wrapper to async routes
-app.route('/api/sagas', methods=['POST'])(async_route(create_saga))
-app.route('/api/sagas/<saga_id>/execute', methods=['POST'])(async_route(execute_saga))
-app.route('/api/demo/circuit-breaker', methods=['POST'])(async_route(demo_circuit_breaker))
-app.route('/api/demo/saga', methods=['POST'])(async_route(demo_saga))
 
 # ============================================================================
 # MAIN APPLICATION
