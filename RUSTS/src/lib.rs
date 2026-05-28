@@ -651,11 +651,13 @@ impl FIREOptimizer {
 
         // Seeded LCG for reproducible pseudo-random numbers.
         let mut state = self.rng_seed.wrapping_add(1);
+        // 2^32: upper 32 bits of the 64-bit LCG state are mapped to (0, 1).
+        const U32_RANGE: f64 = 4_294_967_296.0;
         let lcg_next = |s: &mut u64| -> f64 {
             *s = s.wrapping_mul(6_364_136_223_846_793_005)
                 .wrapping_add(1_442_695_040_888_963_407);
             // Map to (0, 1) by taking the upper 32 bits.
-            ((*s >> 32) as f64 + 0.5) / 4_294_967_296.0
+            ((*s >> 32) as f64 + 0.5) / U32_RANGE
         };
 
         for _ in 0..simulations {

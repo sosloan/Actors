@@ -79,12 +79,12 @@
           (if (< (fv 1200) fi-number)
             nil  ;; Cannot reach within 100 years
             (loop [lo 0 hi 1200]
-              (if (>= lo hi)
-                (long lo)
+              (if (< lo hi)
                 (let [mid (+ lo (quot (- hi lo) 2))]
                   (if (>= (fv mid) fi-number)
                     (recur lo mid)
-                    (recur (inc mid) hi)))))))))))
+                    (recur (inc mid) hi)))
+                (long lo)))))))))
 
 (defn calculate-swr-scenarios
   "Generate a sequence of SWR scenario maps for the given annual-expenses
