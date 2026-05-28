@@ -419,7 +419,7 @@ const FinancialFreedomDashboard: React.FC = () => {
     () => calcFINumber(annualExpenses, variantConfig.withdrawalRate),
     [annualExpenses, variantConfig.withdrawalRate],
   );
-  const yearsToFIRE = targetFIREAge - currentAge;
+  const yearsToFIRE = Math.max(targetFIREAge - currentAge, 0);
   const coastFINumber = useMemo(
     () => calcCoastFI(fireNumber, yearsToFIRE, expectedAnnualReturn / 100),
     [fireNumber, yearsToFIRE, expectedAnnualReturn],
