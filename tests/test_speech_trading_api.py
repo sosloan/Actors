@@ -120,7 +120,7 @@ class TestHealthCheck:
         assert resp.status_code == 200
 
     def test_health_response_structure(self, client):
-        data = resp = client.get("/health").get_json()
+        data = client.get("/health").get_json()
         assert data["status"] == "healthy"
         assert data["service"] == "Speech-to-Trading API"
         assert "timestamp" in data
