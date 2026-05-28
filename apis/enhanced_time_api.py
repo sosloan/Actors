@@ -582,9 +582,6 @@ def async_route(f):
     wrapper.__name__ = f.__name__  # Preserve function name
     return wrapper
 
-# Apply async wrapper to async routes
-app.route('/api/demo/create-dependency-chain', methods=['POST'])(async_route(create_dependency_chain))
-
 # ============================================================================
 # MAIN APPLICATION
 # ============================================================================
