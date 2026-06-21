@@ -58,6 +58,7 @@ ACTORS/
 │   ├── 📄 FAMILY_BIGBUILDER_FORMATTED_README.md
 │   ├── 📄 FREE_CLASS_README.md
 │   ├── 📄 FREE_CLASS_SUMMARY.md
+│   ├── 📄 GUADALAJARA_SYSTEM_ARCHITECTURE.md
 │   ├── 📄 HARPER_HENRY_HARMONY_ARTISTIC_ENHANCED_README.md
 │   ├── 📄 HARPER_HENRY_HARMONY_README.md
 │   ├── 📄 HOMESTAY_PORTFOLIO_README.md
