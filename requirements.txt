@@ -42,7 +42,7 @@ shapely==2.0.2
 python-dotenv==1.0.0
 pydantic==2.1.1
 click==8.1.7
-rich==13.4.2
+rich==14.2.0
 
 # Development
 pytest==7.4.0
