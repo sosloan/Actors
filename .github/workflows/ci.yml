@@ -38,7 +38,7 @@ jobs:
         python -m pytest apis/ -v --cov=apis --cov-report=xml
     
     - name: Upload Python coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
         file: ./coverage.xml
         flags: python
@@ -74,7 +74,7 @@ jobs:
       run: go test -v -race -coverprofile=coverage.out ./...
     
     - name: Upload Go coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
         file: ./GOS/coverage.out
         flags: go
